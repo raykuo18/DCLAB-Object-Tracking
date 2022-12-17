@@ -84,7 +84,7 @@ class Specs():
         with open(file, 'r') as f:
             data = list(yaml.load_all(f, Loader=SafeLoader))[0]
             # for key, value in data.items():
-            #     print(key, ':', value)
+            #     print(key, ':', value)#
         return data
     
 if __name__ == '__main__':
