@@ -21,6 +21,7 @@ class IABundle():
         assert all(isinstance(x, float) for x in data)
         assert all(isinstance(x, int) for x in c_idx)
         assert len(data) == len(c_idx), ''
+
         
         self._h = h
         self._w = w
@@ -73,6 +74,88 @@ class WBundle():
     
     def get_k_idx(self):
         return self._k_idx
+
+
+class HWRK():
+    def __init__(self, h:int, w:int, r:int, k:int):
+        assert isinstance(h, int)
+        assert isinstance(w, int)
+        assert isinstance(r, int)
+        assert isinstance(k, int)
+
+        self._h = h
+        self._w = w
+        self._r = r
+        self._k = k
+
+    def get_hwrk(self):
+        return (self._h, self._w, self._r, self._k)
+
+class OA_Addr():
+    def __init__(self, row:int, col:int, ch:int):
+        assert isinstance(row, int)
+        assert isinstance(col, int)
+        assert isinstance(ch, int)
+
+        self._row = row
+        self._col = col
+        self._ch = ch
+    
+    def get_addr(self):
+        return (self._row, self._col, self._ch)
+
+
+    
+
+
+class OA_AddrController():
+    def __init__(self):
+        
+        self._HWRKs = None
+        
+
+    def put_HWRKs(self, HWRKs: list):
+        assert isinstance(HWRKs, list)
+        assert len(HWRKs) == 3
+        assert all(isinstance(hwrk, HWRK) for hwrk in HWRKs)
+
+        self._HWRKs = HWRKs
+
+    def get_case(self):
+        assert self._HWRKs != None
+
+        # todo
+        _case = 0 # 0, 1, 2, 3
+
+        return _case
+
+    def get_OA_Addrs(self):
+
+        # todo
+        OA_Addr0 = OA_Addr(row=0, col=0, ch=0)
+        OA_Addr1 = OA_Addr(row=0, col=0, ch=0)
+        OA_Addr2 = OA_Addr(row=0, col=0, ch=0)
+
+        OA_Addrs = [OA_Addr0, OA_Addr1, OA_Addr2]
+        return OA_Addrs
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class Fake_PE_output():
@@ -174,6 +257,10 @@ class Fake_PE_Arrays():
         OA = [torch.zeros(1, Co, kh, 1) for x in range(self._row + self._col - 1)]
         return  OA
     
+
+
+
+
 
 
 
@@ -296,6 +383,16 @@ class IAMemory():
         pass
       
 
+
+
+
+
+
+
+
+
+
+
 class Top():
     def __init__(self ):
 
@@ -411,7 +508,7 @@ class Top():
         
 
 
-    
+
 
 
 

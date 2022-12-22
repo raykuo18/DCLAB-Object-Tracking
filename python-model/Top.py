@@ -18,7 +18,7 @@ from specs import *
 WMem = WMemory()
 
 
-wbundle = WMem.get_WBundle(layer=3, group=0, s=0)
+wbundle = WMem.get_WBundle(layer=4, group=0, s=2)
 print(wbundle._s)
 print(len(wbundle._data))
 print(len(wbundle._c_idx))
