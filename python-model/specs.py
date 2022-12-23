@@ -410,7 +410,7 @@ class Fake_PE_Arrays():
 
 
 class WMemory():
-    def __init__(self, weight_path='../checkpoints/siamfc_alexnet_e50_fused_prune_80.pth'):
+    def __init__(self, weight_path='checkpoints/siamfc_alexnet_e50_fused_prune_80.pth'):
 
         pass
 
@@ -433,7 +433,7 @@ class WMemory():
         assert isinstance(s, int)
         assert 1 <= layer <=5
 
-        WB = loadWBundle(f"../WBundles/layer{layer}_g{group}_s{s}.json")
+        WB = loadWBundle(f"WBundles/layer{layer}_g{group}_s{s}.json")
 
         
         return WBundle(s=WB['s'], data=WB['data'], c_idx=WB['c_idx'], pos_ptr=WB['pos_ptr'], r_idx=WB['r_idx'], k_idx=WB['k_idx'] )
@@ -469,7 +469,7 @@ class WMemory():
 
 
 class IAMemory():
-    def __init__(self, weight_path='../checkpoints/siamfc_alexnet_e50_fused_prune_80.pth'):
+    def __init__(self, weight_path='checkpoints/siamfc_alexnet_e50_fused_prune_80.pth'):
 
         
         #---------------- for testing ---------------------------
@@ -499,7 +499,7 @@ class IAMemory():
         assert isinstance(w, int)
         assert 1 <= layer <=5
 
-        IAB = load_IABundle(f'../IABundles/layer{layer}.json')
+        IAB = load_IABundle(f'IABundles/layer{layer}.json')
 
         return IABundle(h=h, w=w, data=IAB[f"{h}_{w}"]["data"], c_idx=IAB[f"{h}_{w}"]["c_idx"])
     

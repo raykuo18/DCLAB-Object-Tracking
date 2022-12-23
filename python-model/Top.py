@@ -3,7 +3,7 @@
 from specs import *
 
 
-print(not 1)
+# print(not 1)
 
 WMem = WMemory()
 IAMem = IAMemory()
@@ -12,10 +12,10 @@ IAMem = IAMemory()
 
 wbundle = WMem.get_WBundle(layer=4, group=0, s=0)
 
-for i in range(10):
-    print(wbundle.get_r_idx()[i], wbundle.get_k_idx()[i], wbundle.get_pos_ptr()[i])
+# for i in range(10):
+#     print(wbundle.get_r_idx()[i], wbundle.get_k_idx()[i], wbundle.get_pos_ptr()[i])
 
-# iabundle = IAMem.get_IABundle(layer=4, h=0, w=0)
+iabundle = IAMem.get_IABundle(layer=4, h=0, w=0)
 
 # print(wbundle.get_len_c_idx())
 # print(iabundle.get_len_c_idx())
