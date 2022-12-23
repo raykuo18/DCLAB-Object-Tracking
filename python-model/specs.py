@@ -21,13 +21,16 @@ class IABundle():
         assert all(isinstance(x, float) for x in data)
         assert all(isinstance(x, int) for x in c_idx)
         assert len(data) == len(c_idx), ''
-
-        
+   
         self._h = h
         self._w = w
         self._data = data
         self._c_idx = c_idx
-    
+        self._len_c_idx = len(c_idx)
+
+    def get_len_c_idx(self):
+        return self._len_c_idx
+
     def get_h_w(self):
         return (self._h, self._w)
     
@@ -59,12 +62,22 @@ class WBundle():
         self._pos_ptr = pos_ptr
         self._r_idx = r_idx
         self._k_idx = k_idx
+
+        self._len_c_idx = len(c_idx)
+        self._len_r_idx = len(r_idx) 
+    def get_len_c_idx(self):
+        return self._len_c_idx
+    def get_len_r_idx(self):
+        return self._len_r_idx
     
     def get_s(self):
         return self._s
     
     def get_data(self):
         return self._data
+
+    def get_c_idx(self):
+        return self._c_idx
     
     def get_pos_ptr(self):
         return self._pos_ptr
@@ -76,20 +89,27 @@ class WBundle():
         return self._k_idx
 
 
-class HWRK():
-    def __init__(self, h:int, w:int, r:int, k:int):
+class HWRKS():
+    def __init__(self, h:int, w:int, r:int, k:int, s:int):
         assert isinstance(h, int)
         assert isinstance(w, int)
         assert isinstance(r, int)
         assert isinstance(k, int)
+        assert isinstance(s, int)
 
         self._h = h
         self._w = w
         self._r = r
         self._k = k
+        self._s = s
 
-    def get_hwrk(self):
-        return (self._h, self._w, self._r, self._k)
+    def get_hwrks(self):
+        return (self._h, self._w, self._r, self._k, self._s)
+
+    def get_row_col_ch(self):
+        row, col, ch = self._h-self._r, self._w-self._s, self._k 
+        return row, col, ch
+        
 
 class OA_Addr():
     def __init__(self, row:int, col:int, ch:int):
@@ -105,43 +125,167 @@ class OA_Addr():
         return (self._row, self._col, self._ch)
 
 
-    
-
-
 class OA_AddrController():
     def __init__(self):
-        
-        self._HWRKs = None
-        
+        pass
+    def get_case_OA_Addrs(self, HWRKSs):
 
-    def put_HWRKs(self, HWRKs: list):
-        assert isinstance(HWRKs, list)
-        assert len(HWRKs) == 3
-        assert all(isinstance(hwrk, HWRK) for hwrk in HWRKs)
+        assert isinstance(HWRKSs, list)
+        assert len(HWRKSs) == 3
+        assert all(isinstance(hwrks, HWRKS) for hwrks in HWRKSs)
 
-        self._HWRKs = HWRKs
+        row0, col0, ch0 = HWRKSs[0].get_row_col_ch()
+        row1, col1, ch1 = HWRKSs[1].get_row_col_ch()
+        row2, col2, ch2 = HWRKSs[2].get_row_col_ch()
 
-    def get_case(self):
-        assert self._HWRKs != None
-
-        # todo
-        _case = 0 # 0, 1, 2, 3
-
-        return _case
-
-    def get_OA_Addrs(self):
-
-        # todo
-        OA_Addr0 = OA_Addr(row=0, col=0, ch=0)
-        OA_Addr1 = OA_Addr(row=0, col=0, ch=0)
-        OA_Addr2 = OA_Addr(row=0, col=0, ch=0)
-
+        OA_Addr0 = OA_Addr(row=row0, col=col0, ch=ch0)
+        OA_Addr1 = OA_Addr(row=row1, col=col1, ch=ch1)
+        OA_Addr2 = OA_Addr(row=row2, col=col2, ch=ch2)
         OA_Addrs = [OA_Addr0, OA_Addr1, OA_Addr2]
-        return OA_Addrs
+
+        comp_01 = self.compare_OA_Addrs(OA_Addr0, OA_Addr1)
+        comp_12 = self.compare_OA_Addrs(OA_Addr1, OA_Addr2)
+
+        if (comp_01 and comp_12):
+            _case = 0
+        elif (comp_01 and  not comp_12):
+            _case = 1
+        elif (not comp_01 and  comp_12):
+            _case = 2
+        elif (not comp_01 and  not comp_12):
+            _case = 3
+        else:
+            print(f"OA_Addr0._ch: {OA_Addr0._ch}")
+            print(f"OA_Addr1._ch: {OA_Addr1._ch}")
+            print(f"OA_Addr2._ch: {OA_Addr2._ch}")
+            raise ValueError("OA_Addrs.ch emerge weird condition")
+
+        return _case, OA_Addrs
+    
+    def compare_OA_Addrs(self, oa_addr0: OA_Addr, oa_addr1: OA_Addr):
+            if (oa_addr0._row == oa_addr1._row and oa_addr0._col == oa_addr1._col and oa_addr0._ch == oa_addr1._ch):
+                return True
+            else:
+                return False
+
+class AIM():
+    def __init__(self, N: int):
+        assert isinstance(N, int)
+        self._N = N
+        self._IA_c_idx = None
+        self._V = [0]*self._N
+        self._P = [0]*self._N
+    
+    def put_IA_c_idx(self, IA_c_idx: list):
+        assert isinstance(IA_c_idx, list)
+        self._IA_c_idx = IA_c_idx
+    
+    def get_VPpairs(self, W_c_idx: list):
+
+        assert self._IA_c_idx != None
+        assert isinstance(W_c_idx,  list)
+
+        # print(f"len(W_c_idx): {len(W_c_idx)}")
+        assert len(W_c_idx) == self._N
+
+        for w in range(self._N):
+            if (W_c_idx[w] not in self._IA_c_idx):
+                self._V[w] = 0
+                self._P[w] = None
+            else:
+                self._V[w] = 1
+                self._P[w] = self._IA_c_idx.index(W_c_idx[w])
+        return self._V, self._P
+    
+
+class Sequence_Decoder():
+    def __init__(self):
+        
+        self.IA_buffer0 = [0]*3
+        self.IA_buffer1 = [0]*3
+        self.W_buffer0 = [0]*3
+        self.W_buffer1 = [0]*3
+
+        self._V = None
+        self._P = None
+        self._VPlen = 0
+
+        self._counter = 0
+        self._which_buffer = False # False:0 or True:1
+    
+    def put_VPpairs(self, V: list, P: list):
+        assert isinstance(V, list)
+        assert isinstance(P, list)
+        assert len(V) == len(P)
+
+        self._V = V
+        self._V = P
+        self._VPlen = len(V)
+
+    # def get_WIApairs(self): # todo how to compute r, k and what's use of  pos_ptr
+    #     buffer_index = 0
+    #     while (buffer_index < 3 and self._counter < self._VPlen):
+    #         if (self._V[self._counter] == 1):
+    #             if (self._which_buffer):
+    #                 self.IA_buffer1
+                
+                
+    #         return
+    #     pass
+    
+    
+
+
+
+
+class PE():
+    def __init__(self, wbundle: WBundle):
+
+        assert isinstance(wbundle, WBundle)
+        self._wbundle = wbundle
+        self._N = 32
+        self._AIM = AIM(N=self._N)
+        self._V = [0]*self._wbundle.get_len_c_idx()
+        self._P = [0]*self._wbundle.get_len_c_idx()
+
+
+    def init_VPpairs(self, iabundle: IABundle):
+        assert isinstance(iabundle, IABundle)
+
+        
+        IA_c_idx = iabundle.get_c_idx()
+        self._AIM.put_IA_c_idx(IA_c_idx)
+
+        W_c_idx = self._wbundle.get_c_idx()
+        W = math.ceil( self._wbundle.get_len_c_idx()/self._N)
+
+        w_len_c = self._wbundle.get_len_c_idx()
+        for w_start in range(W):
+            
+            if ( w_start == W-1 and W*self._N > w_len_c):
+                difference = W*self._N - w_len_c
+                V, P = self._AIM.get_VPpairs(W_c_idx[w_start*self._N : (w_start+1)*self._N ] + [0]*difference)
+                self._V[w_start*self._N : w_len_c] = V[0: self._N - difference]
+                self._P[w_start*self._N : w_len_c] = P[0: self._N - difference]
+            else:
+                V, P = self._AIM.get_VPpairs(W_c_idx[w_start*self._N : (w_start+1)*self._N ])
+                self._V[w_start*self._N : w_start*(self._N+1)] = V
+                self._P[w_start*self._N : w_start*(self._N+1)] = P
+        return
+    
+
+
+
+
+
+
+
+
+
+
 
 
     
-
 
 
 
