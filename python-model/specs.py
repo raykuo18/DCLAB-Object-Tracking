@@ -20,7 +20,7 @@ class IABundle():
         assert isinstance(c_idx, list)
         assert all(isinstance(x, float) for x in data)
         assert all(isinstance(x, int) for x in c_idx)
-        assert len(data) == len(c_idx), ''
+        assert len(data) == len(c_idx)
    
         self._h = h
         self._w = w
@@ -88,7 +88,6 @@ class WBundle():
     def get_k_idx(self):
         return self._k_idx
 
-
 class HWRKS():
     def __init__(self, h:int, w:int, r:int, k:int, s:int):
         assert isinstance(h, int)
@@ -110,7 +109,6 @@ class HWRKS():
         row, col, ch = self._h-self._r, self._w-self._s, self._k 
         return row, col, ch
         
-
 class OA_Addr():
     def __init__(self, row:int, col:int, ch:int):
         assert isinstance(row, int)
@@ -123,7 +121,6 @@ class OA_Addr():
     
     def get_addr(self):
         return (self._row, self._col, self._ch)
-
 
 class OA_AddrController():
     def __init__(self):
@@ -197,7 +194,6 @@ class AIM():
                 self._P[w] = self._IA_c_idx.index(W_c_idx[w])
         return self._V, self._P
     
-
 class Sequence_Decoder():
     def __init__(self):
         
@@ -221,7 +217,7 @@ class Sequence_Decoder():
         self._V = V
         self._V = P
         self._VPlen = len(V)
-
+        
     # def get_WIApairs(self): # todo how to compute r, k and what's use of  pos_ptr
     #     buffer_index = 0
     #     while (buffer_index < 3 and self._counter < self._VPlen):
@@ -233,10 +229,6 @@ class Sequence_Decoder():
     #         return
     #     pass
     
-    
-
-
-
 
 class PE():
     def __init__(self, wbundle: WBundle):
@@ -272,35 +264,6 @@ class PE():
                 self._V[w_start*self._N : w_start*(self._N+1)] = V
                 self._P[w_start*self._N : w_start*(self._N+1)] = P
         return
-    
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 class Fake_PE_output():
     def __init__(self, row: int, col: int, ch: int, data: float):
@@ -320,11 +283,6 @@ class Fake_PE_output():
     def get_data(self):
         return self._data
         
-
-      
-
-    
-
 class Fake_PE_Arrays():
     def __init__(self, row: int, col: int):
 
@@ -401,14 +359,6 @@ class Fake_PE_Arrays():
         OA = [torch.zeros(1, Co, kh, 1) for x in range(self._row + self._col - 1)]
         return  OA
     
-
-
-
-
-
-
-
-
 class WMemory():
     def __init__(self, weight_path='checkpoints/siamfc_alexnet_e50_fused_prune_80.pth'):
 
@@ -464,9 +414,6 @@ class WMemory():
             return self._weights[f'backbone.conv3.0'].shape  # Co, Ci, kh, kw
         else:
             return None
-
-
-
 
 class IAMemory():
     def __init__(self, weight_path='checkpoints/siamfc_alexnet_e50_fused_prune_80.pth'):
@@ -526,17 +473,6 @@ class IAMemory():
 
         pass
       
-
-
-
-
-
-
-
-
-
-
-
 class Top():
     def __init__(self ):
 
@@ -648,20 +584,6 @@ class Top():
         #         temp_OAs = [OAs[8], OAs[7]]
         return 
                 
-
-        
-
-
-
-
-
-
-    
-
-
-
-
-
 class Specs():
     initialized = False
     specs = {}
