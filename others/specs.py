@@ -9,9 +9,13 @@ from utils import *
 
 import torch
 import math
+<<<<<<< HEAD
 # from operator import add
 import numpy as np
 np.random.seed(0)
+=======
+
+>>>>>>> f804d45 (Finisah aim module)
 # parser = argparse.ArgumentParser()
 
 class VPPairs():
@@ -243,12 +247,19 @@ class Sequence_Decoder():
     #     while (buffer_index < 3 and self._counter < self._VPlen):
     #         if (self._V[self._counter] == 1):
     #             if (self._which_buffer):
+<<<<<<< HEAD
     #                 self.IA_buffer1                
+=======
+    #                 self.IA_buffer1
+                
+                
+>>>>>>> f804d45 (Finisah aim module)
     #         return
     #     pass
     
 
 class PE():
+<<<<<<< HEAD
     def __init__(self, id: int):
         self._N = 32
         self._AIM = AIM(N=self._N)
@@ -263,6 +274,18 @@ class PE():
         self._V = [0]*self._wbundle.get_len_c_idx()
         self._P = [0]*self._wbundle.get_len_c_idx()
 
+=======
+    def __init__(self, wbundle: WBundle):
+
+        assert isinstance(wbundle, WBundle)
+        self._wbundle = wbundle
+        self._N = 32
+        self._AIM = AIM(N=self._N)
+        self._V = [0]*self._wbundle.get_len_c_idx()
+        self._P = [0]*self._wbundle.get_len_c_idx()
+
+
+>>>>>>> f804d45 (Finisah aim module)
     def init_VPpairs(self, iabundle: IABundle):
         assert isinstance(iabundle, IABundle)
 
@@ -287,6 +310,7 @@ class PE():
                 self._P[w_start*self._N : w_start*(self._N+1)] = P
         return
 
+<<<<<<< HEAD
     def put_OAshape(self, Hout: int, Wout: int, Cout: int):
         assert isinstance(Hout, int)
         assert isinstance(Wout, int)
@@ -304,6 +328,102 @@ class PE():
 
 
   
+=======
+class Fake_PE_output():
+    def __init__(self, row: int, col: int, ch: int, data: float):
+        assert isinstance(row, int)
+        assert isinstance(col, int)
+        assert isinstance(ch, int)
+        assert isinstance(data, float)
+
+        self._row = row
+        self._col = col
+        self._ch = ch
+        self._data = data
+
+    def get_row_col_ch(self):
+        return(self._row, self._col, self._ch)
+
+    def get_data(self):
+        return self._data
+        
+class Fake_PE_Arrays():
+    def __init__(self, row: int, col: int):
+
+        assert isinstance(row, int)  # row should be 7
+        assert isinstance(col, int)  # col should be 3
+    
+        self._row = row
+        self._col = col
+        self._WBundles = None   # should be list of WBundle
+        self._IABundles = None  # should be list of IABundle
+
+        # --- For testing, yu todo  ---
+        self._Ws = None  # should be list of torch.Tensor(Co, Ci, kh, kw)
+        self._IAs = None 
+        self._temp_OAs = None
+    
+    def put_WBundles(self,  WBundles: list):
+
+        assert isinstance(WBundles, list)
+        assert all(isinstance(x, WBundle) for x in WBundles)
+        assert len(WBundles) == self._col
+
+        self._WBundles = WBundles
+    
+    def put_IABundles(self,  IABundles: list):
+
+        assert isinstance(IABundles, list)
+        assert all(isinstance(x, IABundle) for x in IABundles)
+        assert len(IABundles) == self._row
+
+        self._IABundles = IABundles
+    
+    def get_PE_output(self):  
+        # assert isinstance(PE_index, int)
+        # assert 0 <= PE_index <= self._row + self._col - 2 
+
+        kh = 3
+        width = 1
+        Co = 10
+
+        temp = [ [ [Fake_PE_output(row=0, col=col, ch=ch, data=1.0) for ch in range(Co)] for col in range(width)] for row in range(kh) ]
+
+        return [temp for _ in range(self._row + self._col - 1 )]
+
+
+    # ------------------------ For testing, yu todo  ----------------------
+
+    def put_Weights(self,  Weights: list):
+        assert isinstance(Weights, list)
+        assert all(isinstance(x, torch.Tensor) for x in Weights)
+        assert len(Weights) == self._col
+        self._Ws = Weights
+    
+    def put_IAs(self, IAs: list):
+        assert isinstance(IAs, list)
+        assert all(isinstance(x, torch.Tensor) for x in IAs)
+        assert len(IAs) == self._row
+
+        self._IAs = IAs
+
+    def put_temp_OAs(self, temp_OAs: list):
+        assert isinstance(temp_OAs, list)
+        assert all(isinstance(x, torch.Tensor) for x in temp_OAs)
+        assert len(temp_OAs) == self._col - 1 
+
+        self._temp_OAs = temp_OAs
+    
+    def get_OAs(self): # yu todo
+        assert self._Ws != None
+        assert self._IAs != None
+        assert self._temp_OAs != None
+
+        Co, Ci, kh = self._Ws[0].shape # 384, 256, 3
+        OA = [torch.zeros(1, Co, kh, 1) for x in range(self._row + self._col - 1)]
+        return  OA
+    
+>>>>>>> f804d45 (Finisah aim module)
 class WMemory():
     def __init__(self, weight_path='checkpoints/siamfc_alexnet_e50_fused_prune_80.pth'):
 
@@ -328,7 +448,11 @@ class WMemory():
         assert isinstance(s, int)
         assert 1 <= layer <=5
 
+<<<<<<< HEAD
         WB = loadWBundle(f"WBundles_50000_fused/layer{layer}_g{group}_s{s}.json")
+=======
+        WB = loadWBundle(f"WBundles/layer{layer}_g{group}_s{s}.json")
+>>>>>>> f804d45 (Finisah aim module)
 
         
         return WBundle(s=WB['s'], data=WB['data'], c_idx=WB['c_idx'], pos_ptr=WB['pos_ptr'], r_idx=WB['r_idx'], k_idx=WB['k_idx'] )
@@ -420,6 +544,7 @@ class IAMemory():
       
 class Top():
     def __init__(self ):
+<<<<<<< HEAD
         self._WMemory  = WMemory()
         self._IAMemory = IAMemory()
         self._Specs = Specs()
@@ -649,6 +774,117 @@ class Top():
 
 
             
+=======
+
+        # self._states = Enum(
+        #     'states',(
+        #         'IDLE',
+        #         'INIT'
+        #     )
+        # )
+        self._WMemory  = WMemory()
+        self._IAMemory = IAMemory()
+        self._Specs = Specs()
+        self._Fake_PE_Arrays = Fake_PE_Arrays(row=self._Specs.specs['Fake_PE_Arrays']['row'], col=self._Specs.specs['Fake_PE_Arrays']['col'] )
+
+        self.state = 'IDLE'
+
+        self._OA_buffer = None
+
+    def Conv(self, layer: int, group: int, S: int ):
+
+        assert isinstance(layer, int)
+        assert isinstance(group, int)
+        assert isinstance(S, int)
+        assert S%3 == 0 # S should be 0, 3, 6, 9
+        assert 1 <= layer <=5
+
+        WBundles = [ self._WMemory.get_WBundle(layer=layer, group=group, s=S+i) for i in range(3)]
+        self._Fake_PE_Arrays.put_WBundles(WBundles)
+
+        # Start computing
+        N, Ci, Hi, Wi = self._IAMemory.get_IA_shape(layer=layer) # (batch_size, Ci, H, W)
+        Co, Ci, kh, kw = self._WMemory.get_Weight_shape(layer=layer) # (Co, Ci, kh, kw)
+
+        for w_start in range( math.ceil(Wi/self._Fake_PE_Arrays._row ) ) :
+            for h in range(Hi):
+                ## Init IABundle
+                IABundles = [ self._IAMemory.get_IABundle(layer=layer, h=h, w=w_start*self._Fake_PE_Arrays._row + i) for i in range(self._Fake_PE_Arrays._row)] # 7
+                self._Fake_PE_Arrays.put_IABundles(IABundles) 
+
+                ## Get Fake_PE_outputs [0,1,2,3,4,5,6,7,8]
+                Fake_PE_outputs = self._Fake_PE_Arrays.get_PE_output()
+                pass
+
+
+
+
+
+
+
+    def Conv_test(self, layer: int ):
+
+        assert isinstance(layer, int)
+        assert 1 <= layer <=5
+
+
+
+        # -------------------- For testing ---------------
+
+        # Init Weights
+        Weights = [ self._WMemory.get_Weight(layer=layer, index=i) for i in range(3)]
+        self._Fake_PE_Arrays.put_Weights(Weights)
+
+        # Start computing
+        N, Ci, Hi, Wi = self._IAMemory.get_IA_shape(layer=layer) # (batch_size, Ci, H, W)
+        Co, Ci, kh, kw = self._WMemory.get_Weight_shape(layer=layer) # (Co, Ci, kh, kw)
+
+
+        
+        # Hi = 1
+        # for row in range(Hi):
+        #     temp_OAs = [torch.zeros(1, 384, 3, 1) for x in range(self._Fake_PE_Arrays._col - 1)]  # For Conv 3
+        #     for col_start in range( math.ceil(Wi/self._Fake_PE_Arrays._row ) ) :
+        #         IAs = [ self._IAMemory.get_IA(layer=layer, row=row, col=col_start*self._Fake_PE_Arrays._row + c) for c in range(self._Fake_PE_Arrays._row)]
+        #         self._Fake_PE_Arrays.put_IAs(IAs) 
+        #         self._Fake_PE_Arrays.put_temp_OAs(temp_OAs)
+        #         # Get output
+        #         OAs = self._Fake_PE_Arrays.get_OAs()
+        #         # update temp
+        #         temp_OAs = [OAs[8], OAs[7]]
+
+        # if (layer==1):
+        #     self._OA_buffer = None
+        # elif (layer ==3):
+        #     self._OA_buffer = [ [torch.zeros(1, Co, kh, 1)]*26 for x in range(26)]
+
+        # Hi = 1
+        # for row in range(Hi):
+        #     temp_OAs = [torch.zeros(1, Co, kh, 1) for x in range(3 - 1)]  # For Conv 3
+        #     for col_start in range( math.ceil(Wi/7 ) ) :
+        #         IAs = [ self._IAMemory.get_IA(layer=layer, row=row, col=col_start*7 + c) for c in range(7)]
+        #         self._Fake_PE_Arrays.put_IAs(IAs) 
+        #         self._Fake_PE_Arrays.put_temp_OAs(temp_OAs)
+
+        #         # Get output
+        #         OAs = self._Fake_PE_Arrays.get_OAs()
+
+        #         if (col_start==0):
+        #             for i in range(2,7):
+        #                 torch.add(self._OA_buffer[row][col_start*7+i-2] , OAs[i])
+        #         elif(col_start == math.ceil(Wi/7 )-1):
+        #             for i in range(0,7):
+        #                 torch.add(self._OA_buffer[row][col_start*7+i-2] , OAs[i])
+        #         else:
+        #             for i in range(0,7):
+        #                 torch.add(self._OA_buffer[row][col_start*7+i-2] , OAs[i])
+        #         # need to do pooling and self._IA.putIA here
+
+        #         # update temp
+        #         temp_OAs = [OAs[8], OAs[7]]
+        return 
+                
+>>>>>>> f804d45 (Finisah aim module)
 class Specs():
     initialized = False
     specs = {}

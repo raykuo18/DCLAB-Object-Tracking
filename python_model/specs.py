@@ -11,6 +11,7 @@ class VPPairs():
         
     def get_v_p_pairs(self):
         return self._valids, self._poses
+<<<<<<< HEAD
     
     def __add__(self, add_vppairs):
         assert isinstance(add_vppairs, VPPairs)
@@ -20,6 +21,8 @@ class VPPairs():
         new_poses = self._poses + poses
         new_vppairs = VPPairs(new_valids, new_poses)
         return new_vppairs
+=======
+>>>>>>> f804d45 (Finisah aim module)
 
 class IABundle():
     def __init__(self, h: int, w: int, data: list, c_idx: list):
@@ -100,6 +103,7 @@ class WBundle():
     
     def get_k_idx(self):
         return self._k_idx
+<<<<<<< HEAD
 
 if __name__ == '__main__':
     v1 = list(range(4))
@@ -114,3 +118,5 @@ if __name__ == '__main__':
     
     vppairs3 = vppairs1 + vppairs2 + vppairs1
     print(vppairs3.get_v_p_pairs())
+=======
+>>>>>>> f804d45 (Finisah aim module)

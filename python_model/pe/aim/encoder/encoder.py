@@ -4,7 +4,11 @@ from typing import Tuple
 conf = Config()('PE/AIM/Encoder')
 
 class Encoder():
+<<<<<<< HEAD
     step_size = conf['step_size'] # 32
+=======
+    step_size = conf['step_size']
+>>>>>>> f804d45 (Finisah aim module)
     
     def __init__(self) -> None:
         self.counter = 0

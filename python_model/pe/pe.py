@@ -3,6 +3,7 @@ sys.path.append('/Users/ray_kuo/Documents/NTUEE/111-1/DCLab/DCLAB-Object-Trackin
 
 from config import Config
 
+<<<<<<< HEAD
 
 class PE():
     def __init__(self, id: int) -> None:
@@ -28,6 +29,12 @@ class PE():
         return [ [1]*Cout for x in range(3)      ]  
         
     
+=======
+class PE():
+    def __init__(self) -> None:
+        pass
+    pass
+>>>>>>> f804d45 (Finisah aim module)
 
 if __name__ == "__main__":
     print("Nice")

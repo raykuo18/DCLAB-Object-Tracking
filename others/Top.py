@@ -1,106 +1,23 @@
 
 
 from specs import *
-import numpy as np
 
-
-top = Top()
-
-layer = 2
-top.put_PEs_wbundles(layer = layer)
-
-OAbuffers = np.array(top._OAbuffers)
-OA_counter = top._OA_counter
-OA_c_idx = np.array(top._OA_c_idx)
-OA_data = np.array(top._OA_data)
-OA_offset = np.array(top._OA_offset)
-OA_len = np.array(top._OA_len )
-
-print(OAbuffers.shape)
-print(OA_counter)
-print(OA_c_idx.shape)
-print(OA_data.shape)
-print(OA_offset.shape)
-print(OA_len.shape)
-
-
-# for h in range(top._Ho[layer]):
-#     for w in range(top._Wo[layer]):
-#         print(top._OAbuffers[h][w][0], end =" ")
-#         if (w >10): break
-#     print("")
-#     if(h>10):break
-
-# top.Conv(layer = layer)
-
-
-
-# OAbuffers = np.array(top._OAbuffers)
-# OA_counter = top._OA_counter
-# OA_c_idx = np.array(top._OA_c_idx)
-# OA_data = np.array(top._OA_data)
-# OA_offset = np.array(top._OA_offset)
-# OA_len = np.array(top._OA_len )
-
-
-# print(OAbuffers.shape)
-# print(OAbuffers[0:6, 0:6, 0])
-# print(OA_counter)
-# print(OA_c_idx[0:40])
-# print(OA_data[0:40])
-# print(OA_offset[0:40])
-# print(OA_len[0:40])
-
-
-
-
-
-
-# print((top._PEs[3][2]._id))
 
 # print(not 1)
 
-# WMem = WMemory()
-
-# Wbundles = [[None, None, None]] + [ [WMem.get_WBundle(layer=layer, group=0, s=s) for s in range(3)] for layer in range(1,4) ]
-
-# layer = 2
-# s = 1
-# for layer in range(1,4):
-#     for s in range(3):
-#         W = Wbundles[layer][s]
-#         print(f"layer: {layer}, s: {s}, len_c: {W.get_len_c_idx()}, len_r: {W.get_len_r_idx()}, max_data: {max(W.get_data())}, min_data: {min(W.get_data())}, max_c: {max(W.get_c_idx())} ")
+WMem = WMemory()
+IAMem = IAMemory()
 
 
-# # print(Wbundles[3][0].get_c_idx())
 
-# Hi = [-1, 128, 128, 62]
-# Wi = [-1, 128, 128, 62]
+wbundle = WMem.get_WBundle(layer=4, group=0, s=0)
 
-# IAMem = IAMemory()
-# # IAbundles = [ [ [IAMem.get_IABundle(layer=layer, h=h, w=w) for w in range(Wi[layer])] for h in range(Hi[layer])    ] for layer in range(1,4) ]
-# layer = 3
-# for h in range(Hi[layer]):
-#     for w in range(Wi[layer]):
-#         print(IAMem.get_IABundle(layer=layer, h=h, w=w).get_len_c_idx())
+# for i in range(10):
+#     print(wbundle.get_r_idx()[i], wbundle.get_k_idx()[i], wbundle.get_pos_ptr()[i])
 
+iabundle = IAMem.get_IABundle(layer=4, h=0, w=0)
 
-# print("ok")
-# wbundle = WMem.get_WBundle(layer=2, group=0, s=0)
-# iabundle = IAMem.get_IABundle(layer=2, h=0, w=0)
 # print(wbundle.get_len_c_idx())
-# print(iabundle.get_len_c_idx())
-
-
-
-# # wbundle = WMem.get_WBundle(layer=1, group=0, s=0)
-
-# # # for i in range(10):
-# # #     print(wbundle.get_r_idx()[i], wbundle.get_k_idx()[i], wbundle.get_pos_ptr()[i])
-
-# iabundle = IAMem.get_IABundle(layer=5, h=0, w=0)
-
-# # print(wbundle.get_len_c_idx())
 # print(iabundle.get_len_c_idx())
 
 # PE0 = PE(wbundle=wbundle)

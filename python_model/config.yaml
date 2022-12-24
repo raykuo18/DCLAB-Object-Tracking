@@ -3,8 +3,12 @@ PE:
     cmp_array_size: 32
     Encoder:
       step_size: 32 # smae as cmp_array_size
+<<<<<<< HEAD
   OA_Addr:
 
 Top:
   layers: 5
   
+=======
+  OA_Addr:
+>>>>>>> f804d45 (Finisah aim module)
