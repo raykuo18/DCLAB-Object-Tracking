@@ -198,7 +198,7 @@ class AIM():
         return self._V, self._P
     
 
-class Sequence_Decoder():
+class ThreeWay_Decoder():
     def __init__(self):
         
         self.IA_buffer0 = [0]*3
@@ -227,9 +227,7 @@ class Sequence_Decoder():
     #     while (buffer_index < 3 and self._counter < self._VPlen):
     #         if (self._V[self._counter] == 1):
     #             if (self._which_buffer):
-    #                 self.IA_buffer1
-                
-                
+    #                 self.IA_buffer1                
     #         return
     #     pass
     
