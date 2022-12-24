@@ -4,7 +4,7 @@ from typing import Tuple
 conf = Config()('PE/AIM/Encoder')
 
 class Encoder():
-    step_size = conf['step_size']
+    step_size = conf['step_size'] # 32
     
     def __init__(self) -> None:
         self.counter = 0
