@@ -12,6 +12,20 @@ import math
 
 # parser = argparse.ArgumentParser()
 
+class VPPairs():
+    def __init__(self, valids: list, poses: list) -> None:
+        assert isinstance(valids, list)
+        assert all(isinstance(x, int) for x in valids)
+        assert isinstance(poses, list)
+        assert all(isinstance(x, int) for x in poses)
+        assert len(valids) == len(poses)
+        
+        self._valids = valids
+        self._poses = poses
+        
+    def get_v_p_pairs(self):
+        return self._valids, self._poses
+
 class IABundle():
     def __init__(self, h: int, w: int, data: list, c_idx: list):
         assert isinstance(h, int)
@@ -27,6 +41,8 @@ class IABundle():
         self._data = data
         self._c_idx = c_idx
         self._len_c_idx = len(c_idx)
+        
+        
 
     def get_len_c_idx(self):
         return self._len_c_idx
@@ -65,8 +81,10 @@ class WBundle():
 
         self._len_c_idx = len(c_idx)
         self._len_r_idx = len(r_idx) 
+        
     def get_len_c_idx(self):
         return self._len_c_idx
+    
     def get_len_r_idx(self):
         return self._len_r_idx
     
