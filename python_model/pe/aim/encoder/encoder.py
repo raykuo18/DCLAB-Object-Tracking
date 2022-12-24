@@ -5,20 +5,10 @@ conf = Config()('PE/AIM/Encoder')
 
 class Encoder():
 <<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> cdb01a9 (Finisah aim module)
     step_size = conf['step_size'] # 32
 =======
     step_size = conf['step_size']
 >>>>>>> f804d45 (Finisah aim module)
-<<<<<<< HEAD
-=======
-    step_size = conf['step_size'] # 32
->>>>>>> f54266b (Fix gitignore)
-=======
->>>>>>> cdb01a9 (Finisah aim module)
     
     def __init__(self) -> None:
         self.counter = 0
