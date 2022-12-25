@@ -15,6 +15,15 @@ module tb;
     logic valid[0:31];
     logic [8:0] pos[0:31]; 
 
+    integer i;
+    always_comb begin
+        for(i=0; i<32; i=i+1) begin
+            word[i] = i;
+            IA[i] = i;
+        end
+    end
+    assign ite = 3'd0;
+
 
 	AIM aim(
 		.i_clk(clk),

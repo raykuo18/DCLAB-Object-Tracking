@@ -4,7 +4,7 @@ module AIM(
     input i_start,
     input [2:0] i_ite, // DO SUBTRACT 1, ex, run 2 iteration -> i_ite = 1
     input [15:0] i_word[0:31],
-    input [5:0] i_IA[0:255], // 8*32 = 256
+    input [5:0] i_IA[0:31], // 8*32 = 256
     output o_finish,
     output o_valid[0:31],
     output [8:0] o_pos[0:31]
@@ -25,7 +25,6 @@ logic [8:0]     pos_r[0:31], pos_w[0:31];
 
 logic           i_encode_start;
 logic           i_encode_finish[0:31];
-logic [5:0]     IA_r[0:31], IA_w[0:31];
 
 assign i_encode_start = (state_r == S_ENCO);
 assign o_finish = finish_r;
@@ -33,12 +32,6 @@ assign o_valid = valid_r;
 assign o_pos = pos_r;
 
 // ===== Combinational Blocks ===== 
-always_comb begin //IA
-    case(state_r)
-        S_COMP: IA_w = i_IA[(ite_counter_r << 5) +: 32];
-        default: IA_w = IA_r;
-    endcase
-end
 always_comb begin // state
     case(state_r)
         S_IDLE: state_w = (i_start) ? S_COMP : state_r;
@@ -72,8 +65,8 @@ always_comb begin
         S_COMP: begin
             for(j=0; j<32; j=j+1) begin
                 for(k=0; k<32; k=k+1) begin
-                    map_w[j][k] = (IA_w[k] == i_word[j]);
-                    match_w[j] = (IA_w[k] == i_word[j]) ? 1'd1: match_r[j]; // ***
+                    map_w[j][k] = (i_IA[k] == i_word[j]);
+                    match_w[j] = (i_IA[k] == i_word[j]) ? 1'd1: match_r[j]; // ***
                 end
             end
         end
@@ -83,27 +76,6 @@ always_comb begin
         end
     endcase
 end
-
-/*
-genvar j, k;
-generate
-    if(state_r == S_IDLE) begin
-        map_w = map_r;
-        match_w = 32'd0;
-    end
-    else if(state_r == S_COMP) begin
-        for(j=0; j<32; j=j+1) begin
-            for(k=0; k<32; k=k+1) begin
-                map_w[j][k] = (IA[k] == i_word[j]);
-                match_w[j] = (IA[k] == i_word[j]) ? 1'd1: match_r[j];
-            end
-        end
-    end
-    else begin
-        map_w = map_r;
-        match_w = match_r;
-    end
-endgenerate*/
 
 genvar i;
 generate
@@ -123,7 +95,6 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
         finish_r        <= 1'd0;
 
         for(s=0; s<32; s=s+1) begin
-            IA_r[s] <= 6'd0;
             map_r[s] <= 32'd0;
             valid_r[s] <= 1'd0;
             pos_r[s] <= 9'd0;
@@ -137,7 +108,6 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
         map_r           <= map_w;
         valid_r         <= valid_w;
         pos_r           <= pos_w;
-        IA_r            <= IA_w;
     end
 end
 
@@ -158,12 +128,14 @@ localparam S_IDLE = 1'd0;
 localparam S_ENCO = 1'd1;
 
 logic           state_r, state_w;
-logic           valid_r, valid_w;
+logic           valid_r, valid_w,
 logic [8:0]     pos_r, pos_w;
+//logic           finish_r, finish_w;
 logic [4:0]     match_pos;
 
 assign o_valid = valid_w;
 assign o_pos = pos_w;
+//assign o_finish = finish_w;
 
 // ===== Combinational Blocks =====
 always_comb begin
@@ -238,13 +210,13 @@ end
 always_ff@(posedge i_clk or negedge i_rst_n) begin
     if(!i_rst_n) begin
         state_r     <= S_IDLE;
-        //finish_r    <= 1'd0;
+        finish_r    <= 1'd0;
         valid_r     <= 1'd0;
         pos_r       <= 9'dz;
     end
     else begin
         state_r     <= state_w;
-        //finish_r    <= finish_w;
+        finish_r    <= finish_w;
         valid_r     <= valid_w;
         pos_r       <= pos_w;
     end
