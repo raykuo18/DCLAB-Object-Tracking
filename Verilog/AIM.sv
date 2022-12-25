@@ -29,8 +29,8 @@ logic [5:0]     IA_r[0:31], IA_w[0:31];
 
 assign i_encode_start = (state_r == S_ENCO);
 assign o_finish = finish_r;
-assign o_valid = valid_r;
-assign o_pos = pos_r;
+assign o_valid = valid_w;
+assign o_pos = pos_w;
 
 // ===== Combinational Blocks ===== 
 always_comb begin //IA
@@ -54,7 +54,7 @@ always_comb begin // ite_counter
         default: ite_counter_w = ite_counter_r;
     endcase
 end
-always_comb begin
+always_comb begin // finish
     case(state_r)
         S_IDLE: finish_w = 1'd0;
         S_ENCO: finish_w = (ite_counter_r == i_ite) ? 1'd1: finish_r;
@@ -73,8 +73,8 @@ always_comb begin
             for(j=0; j<32; j=j+1) begin
                 for(k=0; k<32; k=k+1) begin
                     map_w[j][k] = (IA_w[k] == i_word[j]);
-                    match_w[j] = (IA_w[k] == i_word[j]) ? 1'd1: match_r[j]; // ***
                 end
+                match_w[j] = (map_w[j] != 32'd0) ? 1'd1: match_r[j]; // ***
             end
         end
         default: begin
@@ -150,7 +150,6 @@ module encoder(
     input i_match,
     input [31:0] i_word,
     input [2:0] i_ite,
-    //output o_finish,
     output o_valid,
     output [8:0] o_pos
 );
@@ -168,7 +167,7 @@ assign o_pos = pos_w;
 // ===== Combinational Blocks =====
 always_comb begin
     case(i_word)
-        32'h00000000: match_pos = 5'd0;
+        32'h00000001: match_pos = 5'd0;
         32'h00000002: match_pos = 5'd1;
         32'h00000004: match_pos = 5'd2;
         32'h00000008: match_pos = 5'd3;
@@ -226,7 +225,7 @@ always_comb begin // valid & pos
         end
         S_ENCO: begin
             valid_w = (i_match) ? 1'd1 : 1'd0;
-            pos_w = (i_match) ? match_pos + i_ite << 5 : 9'd0;
+            pos_w = (i_match) ? match_pos + (i_ite << 5) : 9'd0;
         end
         default: begin
             valid_w = valid_r;

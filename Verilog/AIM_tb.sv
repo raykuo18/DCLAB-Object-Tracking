@@ -18,8 +18,8 @@ module tb;
     integer i;
     always_comb begin
         for(i=0; i<32; i=i+1) begin
-            word[i] = i;
-            IA[i] = i;
+            word[i] = 2*i;
+            IA[i] = 3*i;
         end
     end
     assign ite = 3'd0;
@@ -65,6 +65,7 @@ module tb;
 	initial begin
 		$fsdbDumpfile("aim.fsdb");
 		$fsdbDumpvars;
+        $fsdbDumpMDA();
 		
 		for (int i = 0; i < 150; i++) begin
 			@(posedge clk);
