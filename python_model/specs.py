@@ -12,6 +12,9 @@ class VPPairs():
     def get_v_p_pairs(self):
         return self._valids, self._poses
     
+    def __len__(self):
+        return len(self._valids)
+    
     def __add__(self, add_vppairs):
         assert isinstance(add_vppairs, VPPairs)
         
