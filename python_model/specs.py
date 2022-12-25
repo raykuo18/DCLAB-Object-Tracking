@@ -25,6 +25,9 @@ class VPPairs():
 >>>>>>> f804d45 (Finisah aim module)
 
     
+    def __len__(self):
+        return len(self._valids)
+    
     def __add__(self, add_vppairs):
         assert isinstance(add_vppairs, VPPairs)
         
