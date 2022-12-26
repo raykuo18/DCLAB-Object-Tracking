@@ -1,4 +1,3 @@
-`define W_C_LEN 16
 `define ADDR_LEN 200
 `define IA_C_LEN 1199
 `define W_C_LEN 1199
@@ -8,7 +7,7 @@ module VPEncoder(
     input                   i_clk,
     input                   i_rst_n,
     //////////////// input (7) ////////////////
-    input                   i_start;
+    input                   i_start,
     // W channel index length
     input [$clog2(`W_C_LEN)-1:0]  i_w_len,
     // Address buffer
@@ -32,6 +31,9 @@ module VPEncoder(
     output [2:0][6:0]       o_addr_left_buffer[0:2],
     output signed [15:0]    o_w_data_left_buffer[0:2],
     output signed [15:0]    o_ia_data_left_buffer[0:2],
+
+    //////////////// Finish ////////////////
+    output                  o_finish;         
 );
 
 /////////////////// State ///////////////////
@@ -39,7 +41,7 @@ localparam          S_IDLE = 2'd0;
 localparam          S_WRITE_RIGHT = 2'd1;
 localparam          S_WRITE_LEFT = 2'd2;
 
-
+logic               finish_r, finish_w;
 logic [1:0]         state_r, state_w;
 logic [1:0]         write_pos_r, write_pos_w;
 logic [4:0]         current_idx_r, current_idx_w;
@@ -52,13 +54,15 @@ logic [6:0]         addr_left_buffer_r[0:2]     , addr_left_buffer_w[0:2];
 logic signed [15:0] w_data_left_buffer_r[0:2]   , w_data_left_buffer_w[0:2];
 logic signed [15:0] ia_data_left_buffer_r[0:2]  , ia_data_left_buffer_w[0:2];
 
-for (int i = 0; i < 3; i++) begin 
-    assign o_addr_right_buffer[i]       = addr_right_buffer_r[i];
-    assign o_w_data_right_buffer[i]     = w_data_right_buffer_r[i];
-    assign o_ia_data_right_buffer[i]    = ia_data_right_buffer_r[i];
-    assign o_addr_left_buffer[i]        = addr_left_buffer_r[i];
-    assign o_w_data_left_buffer[i]      = w_data_left_buffer_r[i];
-    assign o_ia_data_left_buffer[i]     = ia_data_left_buffer_r[i];
+always_comb begin
+    for (int i = 0; i < 3; i++) begin 
+        o_addr_right_buffer[i]       = addr_right_buffer_r[i];
+        o_w_data_right_buffer[i]     = w_data_right_buffer_r[i];
+        o_ia_data_right_buffer[i]    = ia_data_right_buffer_r[i];
+        o_addr_left_buffer[i]        = addr_left_buffer_r[i];
+        o_w_data_left_buffer[i]      = w_data_left_buffer_r[i];
+        o_ia_data_left_buffer[i]     = ia_data_left_buffer_r[i];
+    end
 end
 
 logic left_ready_r, left_ready_w;
@@ -70,6 +74,7 @@ assign o_right_ready = right_ready_r;
 
 // ===== Combinational Blocks ===== 
 always_comb begin
+    finish_w        = finish_r;
     state_w         = state_r;
     write_pos_w     = write_pos_r;
     current_idx_w   = current_idx_r;
@@ -96,33 +101,33 @@ always_comb begin
                     left_ready_w = 0; // change in different state
                     right_ready_w = 0; // change in different state
                     state_w = S_IDLE;
-                end else: begin
-                    if (i_valid_buf[currnt_idx_r] == 0 && i_valid_buf[currnt_idx_r+1] == 0 && i_valid_buf[currnt_idx_r+2] == 0) begin
+                end else begin
+                    if (i_valid_buf[current_idx_r] == 0 && i_valid_buf[current_idx_r+1] == 0 && i_valid_buf[current_idx_r+2] == 0) begin
                         current_idx_w = current_idx_r + 3;
                     end
-                    else: begin
+                    else begin
                         // Three cases
-                        if (i_valid_buf[currnt_idx_r] == 1) begin
+                        if (i_valid_buf[current_idx_r] == 1) begin
                             // write left buffer at write_pos_r
-                            w_data_left_buffer_r[write_pos_r] = i_w_data[currnt_idx_r] // w_data
-                            ia_data_left_buffer_r[write_pos_r] = i_ia_data[i_pos_buf[currnt_idx_r]] // ia data
-                            addr_left_buffer_w[write_pos_r] = i_addr_buf[currnt_idx_r] // address
+                            w_data_left_buffer_r[write_pos_r] = i_w_data[current_idx_r]; // w_data
+                            ia_data_left_buffer_r[write_pos_r] = i_ia_data[i_pos_buf[current_idx_r]]; // ia data
+                            addr_left_buffer_w[write_pos_r] = i_addr_buf[current_idx_r]; // address
                             // step
                             current_idx_w = current_idx_r + 1;
                         end
-                        if (i_valid_buf[currnt_idx_r] == 0 && i_valid_buf[currnt_idx_r+1] == 1) begin
+                        if (i_valid_buf[current_idx_r] == 0 && i_valid_buf[current_idx_r+1] == 1) begin
                             // write left buffer at write_pos_r
-                            w_data_left_buffer_r[write_pos_r] = i_w_data[currnt_idx_r+1] // w_data
-                            ia_data_left_buffer_r[write_pos_r] = i_ia_data[i_pos_buf[currnt_idx_r+1]] // ia data
-                            addr_left_buffer_w[write_pos_r] = i_addr_buf[currnt_idx_r+1] // address
+                            w_data_left_buffer_r[write_pos_r] = i_w_data[current_idx_r+1]; // w_data
+                            ia_data_left_buffer_r[write_pos_r] = i_ia_data[i_pos_buf[current_idx_r+1]]; // ia data
+                            addr_left_buffer_w[write_pos_r] = i_addr_buf[current_idx_r+1]; // address
                             // step
                             current_idx_w = current_idx_r + 2;
                         end
-                        if (i_valid_buf[currnt_idx_r] == 0 && i_valid_buf[currnt_idx_r+1] == 0 && i_valid_buf[currnt_idx_r+2] == 1) begin
+                        if (i_valid_buf[current_idx_r] == 0 && i_valid_buf[current_idx_r+1] == 0 && i_valid_buf[current_idx_r+2] == 1) begin
                             // write left buffer at write_pos_r
-                            w_data_left_buffer_r[write_pos_r] = i_w_data[currnt_idx_r+2] // w_data
-                            ia_data_left_buffer_r[write_pos_r] = i_ia_data[i_pos_buf[currnt_idx_r+2]] // ia data
-                            addr_left_buffer_w[write_pos_r] = i_addr_buf[currnt_idx_r+2] // address
+                            w_data_left_buffer_r[write_pos_r] = i_w_data[current_idx_r+2]; // w_data
+                            ia_data_left_buffer_r[write_pos_r] = i_ia_data[i_pos_buf[current_idx_r+2]]; // ia data
+                            addr_left_buffer_w[write_pos_r] = i_addr_buf[current_idx_r+2]; // address
                             // step
                             current_idx_w = current_idx_r + 3;
                         end
@@ -163,38 +168,38 @@ always_comb begin
                 left_ready_w = 0; // change in different state
                 // right_ready_w = 1; // change in different state
                 state_w = S_IDLE;
-            end else: begin
-                if (i_valid_buf[currnt_idx_r] == 0 && i_valid_buf[currnt_idx_r+1] == 0 && i_valid_buf[currnt_idx_r+2] == 0) begin
+            end else begin
+                if (i_valid_buf[current_idx_r] == 0 && i_valid_buf[current_idx_r+1] == 0 && i_valid_buf[current_idx_r+2] == 0) begin
                     current_idx_w = current_idx_r + 3;
                 end
-                else: begin
+                else begin
                     // Three cases
-                    if (i_valid_buf[currnt_idx_r] == 1) begin
+                    if (i_valid_buf[current_idx_r] == 1) begin
                         // write right buffer at write_pos_r
-                        w_data_right_buffer_r[write_pos_r] = i_w_data[currnt_idx_r] // w_data
-                        ia_data_right_buffer_r[write_pos_r] = i_ia_data[i_pos_buf[currnt_idx_r]] // ia data
-                        addr_right_buffer_w[write_pos_r] = i_addr_buf[currnt_idx_r] // address
+                        w_data_right_buffer_r[write_pos_r] = i_w_data[current_idx_r]; // w_data
+                        ia_data_right_buffer_r[write_pos_r] = i_ia_data[i_pos_buf[current_idx_r]]; // ia data
+                        addr_right_buffer_w[write_pos_r] = i_addr_buf[current_idx_r]; // address
                         // step
                         current_idx_w = current_idx_r + 1;
                     end
-                    if (i_valid_buf[currnt_idx_r] == 0 && i_valid_buf[currnt_idx_r+1] == 1) begin
+                    if (i_valid_buf[current_idx_r] == 0 && i_valid_buf[current_idx_r+1] == 1) begin
                         // write right buffer at write_pos_r
-                        w_data_right_buffer_r[write_pos_r] = i_w_data[currnt_idx_r+1] // w_data
-                        ia_data_right_buffer_r[write_pos_r] = i_ia_data[i_pos_buf[currnt_idx_r+1]] // ia data
-                        addr_right_buffer_w[write_pos_r] = i_addr_buf[currnt_idx_r+1] // address
+                        w_data_right_buffer_r[write_pos_r] = i_w_data[current_idx_r+1]; // w_data
+                        ia_data_right_buffer_r[write_pos_r] = i_ia_data[i_pos_buf[current_idx_r+1]]; // ia data
+                        addr_right_buffer_w[write_pos_r] = i_addr_buf[current_idx_r+1]; // address
                         // step
                         current_idx_w = current_idx_r + 2;
                     end
-                    if (i_valid_buf[currnt_idx_r] == 0 && i_valid_buf[currnt_idx_r+1] == 0 && i_valid_buf[currnt_idx_r+2] == 1) begin
+                    if (i_valid_buf[current_idx_r] == 0 && i_valid_buf[current_idx_r+1] == 0 && i_valid_buf[current_idx_r+2] == 1) begin
                         // write right buffer at write_pos_r
-                        w_data_right_buffer_r[write_pos_r] = i_w_data[currnt_idx_r+2] // w_data
-                        ia_data_right_buffer_r[write_pos_r] = i_ia_data[i_pos_buf[currnt_idx_r+2]] // ia data
-                        addr_right_buffer_w[write_pos_r] = i_addr_buf[currnt_idx_r+2] // address
+                        w_data_right_buffer_r[write_pos_r] = i_w_data[current_idx_r+2]; // w_data
+                        ia_data_right_buffer_r[write_pos_r] = i_ia_data[i_pos_buf[current_idx_r+2]]; // ia data
+                        addr_right_buffer_w[write_pos_r] = i_addr_buf[current_idx_r+2]; // address
                         // step
                         current_idx_w = current_idx_r + 3;
                     end
 
-                    // Check ouptut state
+                    // Check ouptut state;
                     if (write_pos_r == 2) begin // finish a buffer
                         left_ready_w = 0;
                         right_ready_w = 1;
@@ -224,33 +229,33 @@ always_comb begin
                 // left_ready_w = 0; // change in different state
                 right_ready_w = 0; // change in different state
                 state_w = S_IDLE;
-            end else: begin
-                if (i_valid_buf[currnt_idx_r] == 0 && i_valid_buf[currnt_idx_r+1] == 0 && i_valid_buf[currnt_idx_r+2] == 0) begin
+            end else begin
+                if (i_valid_buf[current_idx_r] == 0 && i_valid_buf[current_idx_r+1] == 0 && i_valid_buf[current_idx_r+2] == 0) begin
                     current_idx_w = current_idx_r + 3;
                 end
-                else: begin
+                else begin
                     // Three cases
-                    if (i_valid_buf[currnt_idx_r] == 1) begin
+                    if (i_valid_buf[current_idx_r] == 1) begin
                         // write left buffer at write_pos_r
-                        w_data_left_buffer_r[write_pos_r] = i_w_data[currnt_idx_r] // w_data
-                        ia_data_left_buffer_r[write_pos_r] = i_ia_data[i_pos_buf[currnt_idx_r]] // ia data
-                        addr_left_buffer_w[write_pos_r] = i_addr_buf[currnt_idx_r] // address
+                        w_data_left_buffer_r[write_pos_r] = i_w_data[current_idx_r]; // w_data
+                        ia_data_left_buffer_r[write_pos_r] = i_ia_data[i_pos_buf[current_idx_r]]; // ia data
+                        addr_left_buffer_w[write_pos_r] = i_addr_buf[current_idx_r]; // address
                         // step
                         current_idx_w = current_idx_r + 1;
                     end
-                    if (i_valid_buf[currnt_idx_r] == 0 && i_valid_buf[currnt_idx_r+1] == 1) begin
+                    if (i_valid_buf[current_idx_r] == 0 && i_valid_buf[current_idx_r+1] == 1) begin
                         // write left buffer at write_pos_r
-                        w_data_left_buffer_r[write_pos_r] = i_w_data[currnt_idx_r+1] // w_data
-                        ia_data_left_buffer_r[write_pos_r] = i_ia_data[i_pos_buf[currnt_idx_r+1]] // ia data
-                        addr_left_buffer_w[write_pos_r] = i_addr_buf[currnt_idx_r+1] // address
+                        w_data_left_buffer_r[write_pos_r] = i_w_data[current_idx_r+1]; // w_data
+                        ia_data_left_buffer_r[write_pos_r] = i_ia_data[i_pos_buf[current_idx_r+1]]; // ia data
+                        addr_left_buffer_w[write_pos_r] = i_addr_buf[current_idx_r+1]; // address
                         // step
                         current_idx_w = current_idx_r + 2;
                     end
-                    if (i_valid_buf[currnt_idx_r] == 0 && i_valid_buf[currnt_idx_r+1] == 0 && i_valid_buf[currnt_idx_r+2] == 1) begin
+                    if (i_valid_buf[current_idx_r] == 0 && i_valid_buf[current_idx_r+1] == 0 && i_valid_buf[current_idx_r+2] == 1) begin
                         // write left buffer at write_pos_r
-                        w_data_left_buffer_r[write_pos_r] = i_w_data[currnt_idx_r+2] // w_data
-                        ia_data_left_buffer_r[write_pos_r] = i_ia_data[i_pos_buf[currnt_idx_r+2]] // ia data
-                        addr_left_buffer_w[write_pos_r] = i_addr_buf[currnt_idx_r+2] // address
+                        w_data_left_buffer_r[write_pos_r] = i_w_data[current_idx_r+2]; // w_data
+                        ia_data_left_buffer_r[write_pos_r] = i_ia_data[i_pos_buf[current_idx_r+2]]; // ia data
+                        addr_left_buffer_w[write_pos_r] = i_addr_buf[current_idx_r+2]; // address
                         // step
                         current_idx_w = current_idx_r + 3;
                     end
@@ -276,6 +281,7 @@ end
 // ===== Sequential Blocks =====
 always_ff @(posedge i_clk or negedge i_rst_n) begin
     if(!i_rst_n) begin
+        finish_r        = 0;
         state_r         = S_IDLE;
         write_pos_r     = 0;
         current_idx_r   = 0;
@@ -292,6 +298,7 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
         end
     end
     else begin
+        finish_r        = finish_w;
         state_r         = state_w;
         write_pos_r     = write_pos_w;
         current_idx_r   = current_idx_w;

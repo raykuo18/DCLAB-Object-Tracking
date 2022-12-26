@@ -27,8 +27,7 @@ module PE(
 
     //////////////// output ////////////////
     output                          o_finish,
-    output signed [16:0]            o_feature_map[0:`IA_ROW-1][0:`IA_CHANNEL-1]
-);
+    output signed [16:0]            o_feature_map[0:`IA_ROW-1][0:`IA_CHANN]);
 
 localparam S_IDLE = 2'd0;
 localparam S_AIM_AND_ADDR_COMP = 2'd1;
