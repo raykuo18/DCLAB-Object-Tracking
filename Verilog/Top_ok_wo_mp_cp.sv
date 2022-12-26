@@ -1,23 +1,54 @@
-`timescale 1us/1us
+// --------------------- `define for WMem ------------------------
+    `define W_DATA_BITWIDTH    16
+    `define W_C_BITWIDTH       5   // log2(# Channel)
+    `define W_R_BITWIDTH       2 
+    `define W_K_BITWIDTH       5 
+    `define W_POS_PTR_BITWIDTH 11 
+
+    `define W_C_LENGTH_L1_S0  123
+    `define W_R_LENGTH_L1_S0  48
+    `define W_C_LENGTH_L1_S1  130
+    `define W_R_LENGTH_L1_S1  48
+    `define W_C_LENGTH_L1_S2  124
+    `define W_R_LENGTH_L1_S2  48
+
+    `define W_C_LENGTH_L2_S0  474
+    `define W_R_LENGTH_L2_S0  48
+    `define W_C_LENGTH_L2_S1  460
+    `define W_R_LENGTH_L2_S1  48
+    `define W_C_LENGTH_L2_S2  446
+    `define W_R_LENGTH_L2_S2  48
+
+    `define W_C_LENGTH        474 // max of C_LENGTH
+    `define W_R_LENGTH        48  // max of R_LENGTH
 
 
-`include "header.h"
+// --------------------- `define for IA ------------------------
+    `define IA_DATA_BITWIDTH    16
+    `define IA_C_BITWIDTH       5   // log2(# Channel)
+    `define IA_CHANNEL 8
+    `define IA_ROW 16
+    `define IA_COL 16
+// ----------------------------- OAReducer ----------------------
+    // `define OAReducer_LENGTH    216 // IA_CHANNEL*kh(=3)*9
+
+// ----------------------------- PE Arrays----------------------
+    `define PE_ROW 7
+    `define PE_COL 3
+
+
+// `define W_S_BITWIDTH       2  
+// `define W_ITERS_BITWIDTH   6 
 
 
 
-
-
-module tb_PE_TEMP;
-	localparam CLK = 10;
-	localparam HCLK = CLK/2;
-
-	logic rst, clk;
-	initial clk = 0;
-	always #HCLK clk = ~clk;
-
-
-
-      // ========================== Parameters definition ==================================
+module Top(
+	input              i_clk,
+	input              i_rst_n,
+	input              i_start,
+	output logic [3:0] o_random_out
+);
+    // ========================== Parameters definition ==================================
 
         // ----- WMem --------
             // w_data
@@ -4498,106 +4529,614 @@ module tb_PE_TEMP;
                     `W_POS_PTR_BITWIDTH'b10101001101
                 };
 
+        // ----- State ----------
+            localparam S_IDLE           = 0;
+            localparam S_CAMERA         = 1;
 
+            localparam S_PUT_W_1        = 2;
+            localparam S_CONV_1         = 3;
+            localparam S_REDUCE_1       = 4;
+            localparam S_TOOABUFFER_1   = 5;  // put to OA
+            localparam S_COMPRESS_1     = 6;  // put to IA
+
+            localparam S_PUT_W_2        = 7;
+            localparam S_CONV_2         = 8;
+            localparam S_REDUCE_2       = 9;
+            localparam S_TOOABUFFER_2   = 10; // put to OA
+
+            localparam S_MAXPOOL        = 11;
+            localparam S_LINEAR         = 12;
+            localparam S_OUT            = 13; 
+
+        // ----- PE -----------------
+            localparam  logic  PEs_FINISH [0:`PE_ROW-1][0:`PE_COL-1] = 
+            '{
+                '{1, 1, 1},
+                '{1, 1, 1},
+                '{1, 1, 1},
+                '{1, 1, 1},
+                '{1, 1, 1},
+                '{1, 1, 1},
+                '{1, 1, 1}
+            };
+
+            localparam logic  [1:0]                     w_s     [0:`PE_COL-1] = '{0, 1, 2};
+
+
+            localparam logic  [$clog2(`W_C_LENGTH):0] w_len_1 [0:`PE_COL-1] =
+            '{
+                `W_C_LENGTH_L1_S0, `W_C_LENGTH_L1_S1, `W_C_LENGTH_L1_S2
+            };
+            localparam logic  [$clog2(`W_C_LENGTH):0] w_len_2 [0:`PE_COL-1] =
+            '{
+                `W_C_LENGTH_L2_S0, `W_C_LENGTH_L2_S1, `W_C_LENGTH_L2_S2
+            };
+
+
+            localparam logic  [$clog2(`W_C_LENGTH):0] w_iters_1 [0:`PE_COL-1] =
+            '{
+                (`W_C_LENGTH_L1_S0 >> 5), (`W_C_LENGTH_L1_S1 >> 5), (`W_C_LENGTH_L1_S2 >>5)
+            };
+            localparam logic  [$clog2(`W_C_LENGTH):0] w_iters_2 [0:`PE_COL-1] =
+            '{
+                (`W_C_LENGTH_L2_S0 >> 5), (`W_C_LENGTH_L2_S1 >> 5), (`W_C_LENGTH_L2_S2 >>5)
+            };
+
+
+              
+
+
+    // ========================== Output Logic ============================================
+        logic  [3:0] o_random_out_n;
 
     // ========================== Logic (Wire) =============================================
         // ----------------------- For PE ------- unfinished------------------------
-            logic                                  i_start_PEs;
+            
             // IA bundle
-            logic        [$clog2(`IA_ROW):0]     i_ia_h;
-            logic        [$clog2(`IA_COL):0]     i_ia_w;
-            logic signed [`IA_DATA_BITWIDTH-1:0]   i_ia_data   [0:`IA_CHANNEL-1];
-            logic        [`IA_C_BITWIDTH-1:0]      i_ia_c_idx  [0:`IA_CHANNEL-1];
-            logic        [$clog2(`IA_CHANNEL):0] i_ia_iters; // ---------------------- need discussion -> 0
-            logic        [$clog2(`IA_CHANNEL):0] i_ia_len;
+            logic        [$clog2(`IA_ROW):0]     i_ia_h      [0:`PE_ROW-1];
+            logic        [$clog2(`IA_COL):0]     i_ia_w      [0:`PE_ROW-1];
+            logic signed [`IA_DATA_BITWIDTH-1:0]   i_ia_data   [0:`PE_ROW-1][0:`IA_CHANNEL-1];
+            logic        [`IA_C_BITWIDTH-1:0]      i_ia_c_idx  [0:`PE_ROW-1][0:`IA_CHANNEL-1];
+            logic        [$clog2(`IA_CHANNEL):0] i_ia_iters  [0:`PE_ROW-1];
+            logic        [$clog2(`IA_CHANNEL):0] i_ia_len    [0:`PE_ROW-1];
+        
             // W bundle
-            logic        [1:0]                     i_w_s;
-            logic signed [`W_DATA_BITWIDTH-1:0]    i_w_data    [0:`W_C_LENGTH-1]; 
-            logic        [`W_C_BITWIDTH-1:0]       i_w_c_idx   [0:`W_C_LENGTH-1];
-            logic        [`W_POS_PTR_BITWIDTH-1:0] i_pos_ptr   [0:`W_R_LENGTH-1];
-            logic        [`W_R_BITWIDTH-1:0]       i_r_idx     [0:`W_R_LENGTH-1];
-            logic        [`W_K_BITWIDTH-1:0]       i_k_idx     [0:`W_R_LENGTH-1];
-            logic        [$clog2(`W_C_LENGTH):0] i_w_iters;  // ---------------------- need discussion -> ceil(w_len/32)
-            logic        [$clog2(`W_C_LENGTH):0] i_w_len;
+            logic signed [`W_DATA_BITWIDTH-1:0]    i_w_data    [0:`PE_COL-1][0:`W_C_LENGTH-1]; 
+            logic        [`W_C_BITWIDTH-1:0]       i_w_c_idx   [0:`PE_COL-1][0:`W_C_LENGTH-1];
+            logic        [`W_POS_PTR_BITWIDTH-1:0] i_pos_ptr   [0:`PE_COL-1][0:`W_R_LENGTH-1];
+            logic        [`W_R_BITWIDTH-1:0]       i_r_idx     [0:`PE_COL-1][0:`W_R_LENGTH-1];
+            logic        [`W_K_BITWIDTH-1:0]       i_k_idx     [0:`PE_COL-1][0:`W_R_LENGTH-1];
+            logic        [1:0]                     i_w_s       [0:`PE_COL-1];
+            logic        [$clog2(`W_C_LENGTH):0] i_w_iters   [0:`PE_COL-1];
+            logic        [$clog2(`W_C_LENGTH):0] i_w_len     [0:`PE_COL-1];
+
             // Output
-            logic                                  o_finish_PE;
-            logic signed [`IA_DATA_BITWIDTH-1:0]   o_OA        [0:`IA_ROW*`IA_CHANNEL-1];
-            // logic signed [`IA_DATA_BITWIDTH-1:0]   o_OA        [0:`IA_ROW-1][0:`IA_CHANNEL-1];
+            logic                                  o_finish_PE [0:`PE_ROW-1][0:`PE_COL-1];
+            logic signed [`IA_DATA_BITWIDTH-1:0]   o_OA        [0:`PE_ROW-1][0:`PE_COL-1][0:`IA_ROW*`IA_CHANNEL-1];
+            
+        // ----------------------- Else ------------------------
+            logic                                  o_finish_CAMERA;
+            
 
-	PE_TEMP pe_temp0(
-        .i_rst_n        (rst),
-		.i_clk          (clk),
-        .i_start        (i_start_PEs),
-        // IA bundle
-        .i_ia_h         (i_ia_h),
-        .i_ia_w         (i_ia_w),
-        .i_ia_data      (i_ia_data),
-        .i_ia_c_idx     (i_ia_c_idx ),
-        .i_ia_iters     (i_ia_iters),
-        .i_ia_len       (i_ia_len),
-        // W bundle
-        .i_w_s          (i_w_s),
-        .i_w_data       (i_w_data),
-        .i_w_c_idx      (i_w_c_idx),
-        .i_pos_ptr      (i_pos_ptr),
-        .i_r_idx        (i_r_idx),
-        .i_k_idx        (i_k_idx),
-        .i_w_iters      (i_w_iters),
-        .i_w_len        (i_w_len),
-        // Output
-        .o_finish       (o_finish),
-        .o_OA           (o_OA)
-	);
+    // ========================== Logic (Reg) =============================
+        // For PE
+        logic                                   i_start_PEs, i_start_PEs_n;
+        logic        [$clog2(`IA_CHANNEL):0]  ia_iters    [0:`IA_ROW-1][0:`IA_COL-1],                  ia_iters_n    [0:`IA_ROW-1][0:`IA_COL-1];
+        logic        [$clog2(`IA_CHANNEL):0]  ia_len      [0:`IA_ROW-1][0:`IA_COL-1],                  ia_len_n      [0:`IA_ROW-1][0:`IA_COL-1];
+        // For OA
+        logic signed [`IA_DATA_BITWIDTH-1:0]    oa_buffer   [0:`IA_ROW-1][0:`IA_COL-1][0:`IA_CHANNEL-1], oa_buffer_n   [0:`IA_ROW-1][0:`IA_COL-1][0:`IA_CHANNEL-1];
+        logic signed [`IA_DATA_BITWIDTH-1:0]    oa_reducer  [0:`IA_ROW+`IA_COL-2][0:2][0:`IA_CHANNEL-1], oa_reducer_n  [0:`IA_ROW+`IA_COL-2][0:2][0:`IA_CHANNEL-1];
+        logic signed [`IA_DATA_BITWIDTH-1:0]    ia_data     [0:`IA_ROW-1][0:`IA_COL-1][0:`IA_CHANNEL-1], ia_data_n     [0:`IA_ROW-1][0:`IA_COL-1][0:`IA_CHANNEL-1];
+        logic        [`IA_C_BITWIDTH-1:0]       ia_c_idx    [0:`IA_ROW-1][0:`IA_COL-1][0:`IA_CHANNEL-1], ia_c_idx_n    [0:`IA_ROW-1][0:`IA_COL-1][0:`IA_CHANNEL-1];
+        logic        [4:0]                      state, state_n;
+        logic        [$clog2(`IA_ROW) :0]      Hi, Hi_n,                  h, h_n;
+        logic        [$clog2(`IA_COL) :0]      Wi, Wi_n,                  w_start_max, w_start_max_n,      w_start, w_start_n;        
+        logic        [$clog2(`IA_CHANNEL):0]  Co, Co_n;
 
-	initial begin
-		$fsdbDumpfile("pe_temp.fsdb");
-		$fsdbDumpvars;
-		$fsdbDumpMDA();
-        // reset 
-		rst = 1'b0;
-		#(2*CLK)
-		rst = 1'b1;
+    // ========================== PE Arrays (7 x 3) === unfinished ==========================
+        generate
+            for (genvar gv_row=0; gv_row < `PE_ROW; gv_row++) begin
+                for (genvar gv_col=0; gv_col < `PE_COL; gv_col++) begin
+                    PE_TEMP u_PE_TEMP(
+                        .i_clk          (i_clk),
+                        .i_rst_n        (i_rst_n),
+                        .i_start        (i_start_PEs),
+                        // IA bundle
+                        .i_ia_h         (i_ia_h    [gv_row]),
+                        .i_ia_w         (i_ia_w    [gv_row]),
+                        .i_ia_data      (i_ia_data [gv_row]),
+                        .i_ia_c_idx     (i_ia_c_idx[gv_row]),
+                        .i_ia_iters     (i_ia_iters[gv_row]),
+                        .i_ia_len       (i_ia_len  [gv_row]),
+                        // W bundle
+                        .i_w_s          (i_w_s      [gv_col]),
+                        .i_w_data       (i_w_data   [gv_col]),
+                        .i_w_c_idx      (i_w_c_idx  [gv_col]),
+                        .i_pos_ptr      (i_pos_ptr  [gv_col]),
+                        .i_r_idx        (i_r_idx    [gv_col]),
+                        .i_k_idx        (i_k_idx    [gv_col]),
+                        .i_w_iters      (i_w_iters  [gv_col]),
+                        .i_w_len        (i_w_len    [gv_col]),
 
-        for (int i = 0; i < 10; i++) @(posedge clk);
-
-
-
-
-        for (int i = 0; i < 5000; i++) begin
-            @(posedge clk);
-            //-----------------------
-                i_start_PEs = 1;
-                // IA bundle
-                i_ia_h      = 0;
-                i_ia_w      = 0;
-                for (int k=0; k < `IA_CHANNEL; k++) begin 
-                    i_ia_data[k]  = (k<3) ? (2*k+1) : -2;
-                    i_ia_c_idx[k] = (k<3) ? (k*k)  : 0;
+                        // Output
+                        .o_finish       (o_finish_PE[gv_row][gv_col]),
+                        .o_OA           (o_OA[gv_row][gv_col])
+                    );
                 end
-                i_ia_iters  = 0; // fixed
-                i_ia_len    = 3;
+            end
+        endgenerate
 
-                // W bundle
-                i_w_s       = 0;
-                for (int k=0; k < `W_C_LENGTH; k++) i_w_data[k]    = (k<`W_C_LENGTH_L1_S0) ? w_data_l1_s0[k]    : -1;
-                for (int k=0; k < `W_C_LENGTH; k++) i_w_c_idx[k]   = (k<`W_C_LENGTH_L1_S0) ? w_c_idx_l1_s0[k]   : 0; 
-                for (int k=0; k < `W_R_LENGTH; k++) i_pos_ptr[k]   = (k<`W_R_LENGTH_L1_S0) ? w_pos_ptr_l1_s0[k] : 0; 
-                for (int k=0; k < `W_R_LENGTH; k++) i_r_idx[k]     = (k<`W_R_LENGTH_L1_S0) ? w_r_idx_l1_s0[k]   : 0; 
-                for (int k=0; k < `W_R_LENGTH; k++) i_k_idx[k]     = (k<`W_R_LENGTH_L1_S0) ? w_k_idx_l1_s0[k]   : 0; 
-                i_w_iters   = (`W_C_LENGTH_L1_S0 >> 5);
-                i_w_len     = `W_C_LENGTH_L1_S0;
 
+    // ========================== Task ==================================================
+        // task READ_i_w_data;
+            
+        // endtask
+        task PUT_W;
+            // remenber to reset all buffer except IA
+            for (int r=0; r < `IA_ROW; r++ ) begin
+                for (int c=0; c < `IA_COL; c++ ) begin
+                    for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
+                        oa_buffer_n[r][c][ch] = 0;
+                    end
+                end
+            end
+
+            for (int id=0; id < `IA_ROW+`IA_COL-2; id++ ) begin
+                for (int row=0; row < 3; row++ ) begin
+                    for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
+                        oa_reducer_n[id][row][ch] = 0;
+                    end
+                end
+            end
+
+            case(state)
+                S_PUT_W_1: begin
+
+                    // 
+                    for (int k=0; k < `W_C_LENGTH; k++) begin
+                            i_w_data[0][k]    = (k<`W_C_LENGTH_L1_S0) ? $signed( w_data_l1_s0[k] ) : -1;
+                            i_w_data[1][k]    = (k<`W_C_LENGTH_L1_S1) ? $signed( w_data_l1_s1[k] ) : -1;
+                            i_w_data[2][k]    = (k<`W_C_LENGTH_L1_S2) ? $signed( w_data_l1_s2[k] ) : -1;
+
+                            i_w_c_idx[0][k]   = (k<`W_C_LENGTH_L1_S0) ?          w_c_idx_l1_s0[k]   : 0; 
+                            i_w_c_idx[1][k]   = (k<`W_C_LENGTH_L1_S1) ?          w_c_idx_l1_s1[k]   : 0; 
+                            i_w_c_idx[2][k]   = (k<`W_C_LENGTH_L1_S2) ?          w_c_idx_l1_s2[k]   : 0; 
+
+                            i_pos_ptr[0][k]   = (k<`W_R_LENGTH_L1_S0) ?          w_pos_ptr_l1_s0[k] : 0; 
+                            i_pos_ptr[1][k]   = (k<`W_R_LENGTH_L1_S1) ?          w_pos_ptr_l1_s1[k] : 0; 
+                            i_pos_ptr[2][k]   = (k<`W_R_LENGTH_L1_S2) ?          w_pos_ptr_l1_s2[k] : 0; 
+
+
+                            i_r_idx[0][k]     = (k<`W_R_LENGTH_L1_S0) ?          w_r_idx_l1_s0[k]   : 0; 
+                            i_r_idx[1][k]     = (k<`W_R_LENGTH_L1_S1) ?          w_r_idx_l1_s1[k]   : 0; 
+                            i_r_idx[2][k]     = (k<`W_R_LENGTH_L1_S2) ?          w_r_idx_l1_s2[k]   : 0; 
+
+                            i_k_idx[0][k]     = (k<`W_R_LENGTH_L1_S0) ?          w_k_idx_l1_s0[k]   : 0; 
+                            i_k_idx[1][k]     = (k<`W_R_LENGTH_L1_S1) ?          w_k_idx_l1_s1[k]   : 0; 
+                            i_k_idx[2][k]     = (k<`W_R_LENGTH_L1_S2) ?          w_k_idx_l1_s2[k]   : 0; 
+                    end
+            
+
+                    for (int pe_col=0; pe_col < `PE_COL; pe_col++) begin 
+                        i_w_s       [pe_col] = w_s          [pe_col];
+                        i_w_len     [pe_col] = w_len_1      [pe_col];
+                        i_w_iters   [pe_col] = w_iters_1    [pe_col];
+                    end
+
+                    
+
+
+
+                end
+
+                S_PUT_W_2: begin
+                    // 
+                    for (int k=0; k < `W_C_LENGTH; k++) begin
+                            i_w_data[0][k]    = (k<`W_C_LENGTH_L2_S0) ? $signed( w_data_l2_s0[k] ) : -1;
+                            i_w_data[1][k]    = (k<`W_C_LENGTH_L2_S1) ? $signed( w_data_l2_s1[k] ) : -1;
+                            i_w_data[2][k]    = (k<`W_C_LENGTH_L2_S2) ? $signed( w_data_l2_s2[k] ) : -1;
+
+                            i_w_c_idx[0][k]   = (k<`W_C_LENGTH_L2_S0) ?          w_c_idx_l2_s0[k]   : 0; 
+                            i_w_c_idx[1][k]   = (k<`W_C_LENGTH_L2_S1) ?          w_c_idx_l2_s1[k]   : 0; 
+                            i_w_c_idx[2][k]   = (k<`W_C_LENGTH_L2_S2) ?          w_c_idx_l2_s2[k]   : 0; 
+
+                            i_pos_ptr[0][k]   = (k<`W_R_LENGTH_L2_S0) ?          w_pos_ptr_l2_s0[k] : 0; 
+                            i_pos_ptr[1][k]   = (k<`W_R_LENGTH_L2_S1) ?          w_pos_ptr_l2_s1[k] : 0; 
+                            i_pos_ptr[2][k]   = (k<`W_R_LENGTH_L2_S2) ?          w_pos_ptr_l2_s2[k] : 0; 
+
+
+                            i_r_idx[0][k]     = (k<`W_R_LENGTH_L2_S0) ?          w_r_idx_l2_s0[k]   : 0; 
+                            i_r_idx[1][k]     = (k<`W_R_LENGTH_L2_S1) ?          w_r_idx_l2_s1[k]   : 0; 
+                            i_r_idx[2][k]     = (k<`W_R_LENGTH_L2_S2) ?          w_r_idx_l2_s2[k]   : 0; 
+
+                            i_k_idx[0][k]     = (k<`W_R_LENGTH_L2_S0) ?          w_k_idx_l2_s0[k]   : 0; 
+                            i_k_idx[1][k]     = (k<`W_R_LENGTH_L2_S1) ?          w_k_idx_l2_s1[k]   : 0; 
+                            i_k_idx[2][k]     = (k<`W_R_LENGTH_L2_S2) ?          w_k_idx_l2_s2[k]   : 0; 
+                    end
+            
+                    for (int pe_col=0; pe_col < `PE_COL; pe_col++) begin 
+                        i_w_s       [pe_col] = w_s          [pe_col];
+                        i_w_len     [pe_col] = w_len_2      [pe_col];
+                        i_w_iters   [pe_col] = w_iters_2    [pe_col];
+                    end
+
+                    
+                    
+                end
+            endcase
+        endtask
+
+
+        task CONV;    // finish
+            i_start_PEs_n = 1;
+            for (int pe_row=0; pe_row < `PE_ROW; pe_row++) begin 
+                i_ia_h      [pe_row]  =         h;
+                i_ia_w      [pe_row]  =         w_start + pe_row;
+                i_ia_data   [pe_row]  = $signed(ia_data     [h][w_start + pe_row] );
+                i_ia_c_idx  [pe_row]  =         ia_c_idx    [h][w_start + pe_row];
+                i_ia_iters  [pe_row]  =         ia_iters    [h][w_start + pe_row];
+                i_ia_len    [pe_row]  =         ia_len      [h][w_start + pe_row];
+            end
+        endtask
+
+        task TOOABUFFER;   
+            // didn;t write code like : " (ch < Co ) ? ... :... ", Since I think  it need not to do,  Just to handle Co  when Compression or next layer's Hi
+
+            // input [$clog2(`IA_COL)-1:0] w_start;
+            // input [$clog2(`IA_ROW)-1:0] h;
+            case(w_start)
+                0:  begin
+                    case(h)
+                        0: begin
+                            for (int c=0; c < `PE_ROW; c++ ) begin
+                                for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
+                                    oa_buffer_n[0][c][ch] = $signed(oa_buffer[0][c][ch]) + $signed(oa_reducer[c+2][2][ch]);
+                                end
+                            end
+                        end
+                        1: begin
+                            for (int c=0; c < `PE_ROW; c++ ) begin
+                                for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
+                                    oa_buffer_n[0][c][ch] = $signed(oa_buffer[0][c][ch]) + $signed(oa_reducer[c+2][1][ch]);
+                                    oa_buffer_n[1][c][ch] = $signed(oa_buffer[1][c][ch]) + $signed(oa_reducer[c+2][2][ch]);
+                                end
+                            end    
+                        end
+                        (Hi-2): begin
+                            for (int c=0; c < `PE_ROW; c++ ) begin
+                                for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
+                                    oa_buffer_n[h-2][c][ch] = $signed(oa_buffer[h-2][c][ch]) + $signed(oa_reducer[c+2][0][ch]);
+                                    oa_buffer_n[h-1][c][ch] = $signed(oa_buffer[h-1][c][ch]) + $signed(oa_reducer[c+2][1][ch]);
+                                end
+                            end                              
+                        end
+                        (Hi-1): begin
+                            for (int c=0; c < `PE_ROW; c++ ) begin
+                                for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
+                                    oa_buffer_n[h-2][c][ch] = $signed(oa_buffer[h-2][c][ch]) + $signed(oa_reducer[c+2][0][ch]);
+                                end
+                            end 
+                        end
+                        default: begin
+                            for (int c=0; c < `PE_ROW; c++ ) begin
+                                for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
+                                    oa_buffer_n[h-2][c][ch] = $signed(oa_buffer[h-2][c][ch]) + $signed(oa_reducer[c+2][0][ch]);
+                                    oa_buffer_n[h-1][c][ch] = $signed(oa_buffer[h-1][c][ch]) + $signed(oa_reducer[c+2][1][ch]);
+                                    oa_buffer_n[h  ][c][ch] = $signed(oa_buffer[h  ][c][ch]) + $signed(oa_reducer[c+2][2][ch]);
+                                end
+                            end  
+                        end
+                    endcase
+                end
+                (w_start_max-1):    begin
+                    case(h)
+                        0: begin
+                            for (int c=w_start*7-2; c < Wi-1; c++ ) begin
+                                for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
+                                    oa_buffer_n[0][c][ch] = $signed(oa_buffer[0][c][ch]) + $signed(oa_reducer[c-w_start*7+2][2][ch]);
+                                end
+                            end
+                        end
+                        1: begin
+                            for (int c=w_start*7-2; c < Wi-1; c++ ) begin
+                                for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
+                                    oa_buffer_n[0][c][ch] = $signed(oa_buffer[0][c][ch]) + $signed(oa_reducer[c-w_start*7+2][1][ch]);
+                                    oa_buffer_n[1][c][ch] = $signed(oa_buffer[1][c][ch]) + $signed(oa_reducer[c-w_start*7+2][2][ch]);
+                                end
+                            end    
+                        end
+                        (Hi-2): begin
+                            for (int c=w_start*7-2; c < Wi-1; c++ ) begin
+                                for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
+                                    oa_buffer_n[h-2][c][ch] = $signed(oa_buffer[h-2][c][ch]) + $signed(oa_reducer[c-w_start*7+2][0][ch]);
+                                    oa_buffer_n[h-1][c][ch] = $signed(oa_buffer[h-1][c][ch]) + $signed(oa_reducer[c-w_start*7+2][1][ch]);
+                                end
+                            end                              
+                        end
+                        (Hi-1): begin
+                            for (int c=w_start*7-2; c < Wi-1; c++ ) begin
+                                for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
+                                    oa_buffer_n[h-2][c][ch] = $signed(oa_buffer[h-2][c][ch]) + $signed(oa_reducer[c-w_start*7+2][0][ch]);
+                                end
+                            end 
+                        end
+                        default: begin
+                            for (int c=w_start*7-2; c < Wi-1; c++ ) begin
+                                for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
+                                    oa_buffer_n[h-2][c][ch] = $signed(oa_buffer[h-2][c][ch]) + $signed(oa_reducer[c-w_start*7+2][0][ch]);
+                                    oa_buffer_n[h-1][c][ch] = $signed(oa_buffer[h-1][c][ch]) + $signed(oa_reducer[c-w_start*7+2][1][ch]);
+                                    oa_buffer_n[h  ][c][ch] = $signed(oa_buffer[h  ][c][ch]) + $signed(oa_reducer[c-w_start*7+2][2][ch]);
+                                end
+                            end  
+                        end
+                    endcase
+                end
+                default:    begin
+                     case(h)
+                        0: begin
+                            for (int c=w_start*7-2; c < w_start*7+7; c++ ) begin
+                                for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
+                                    oa_buffer_n[0][c][ch] = $signed(oa_buffer[0][c][ch]) + $signed(oa_reducer[c-w_start*7+2][2][ch]);
+                                end
+                            end
+                        end
+                        1: begin
+                            for (int c=w_start*7-2; c < w_start*7+7; c++ ) begin
+                                for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
+                                    oa_buffer_n[0][c][ch] = $signed(oa_buffer[0][c][ch]) + $signed(oa_reducer[c-w_start*7+2][1][ch]);
+                                    oa_buffer_n[1][c][ch] = $signed(oa_buffer[1][c][ch]) + $signed(oa_reducer[c-w_start*7+2][2][ch]);
+                                end
+                            end    
+                        end
+                        (Hi-2): begin
+                            for (int c=w_start*7-2; c < w_start*7+7; c++ ) begin
+                                for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
+                                    oa_buffer_n[h-2][c][ch] = $signed(oa_buffer[h-2][c][ch]) + $signed(oa_reducer[c-w_start*7+2][0][ch]);
+                                    oa_buffer_n[h-1][c][ch] = $signed(oa_buffer[h-1][c][ch]) + $signed(oa_reducer[c-w_start*7+2][1][ch]);
+                                end
+                            end                              
+                        end
+                        (Hi-1): begin
+                            for (int c=w_start*7-2; c < w_start*7+7; c++ ) begin
+                                for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
+                                    oa_buffer_n[h-2][c][ch] = $signed(oa_buffer[h-2][c][ch]) + $signed(oa_reducer[c-w_start*7+2][0][ch]);
+                                end
+                            end 
+                        end
+                        default: begin
+                            for (int c=w_start*7-2; c < w_start*7+7; c++ ) begin
+                                for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
+                                    oa_buffer_n[h-2][c][ch] = $signed(oa_buffer[h-2][c][ch]) + $signed(oa_reducer[c-w_start*7+2][0][ch]);
+                                    oa_buffer_n[h-1][c][ch] = $signed(oa_buffer[h-1][c][ch]) + $signed(oa_reducer[c-w_start*7+2][1][ch]);
+                                    oa_buffer_n[h  ][c][ch] = $signed(oa_buffer[h  ][c][ch]) + $signed(oa_reducer[c-w_start*7+2][2][ch]);
+                                end
+                            end  
+                        end
+                    endcase
+                end
+            endcase
+        endtask
+
+        task TOOAREDUCER; // todo
+            // Co
+            for(int r=0; r<3; r++) begin
+                for(int ch = 0; ch < `IA_CHANNEL; ch++) begin
+                    oa_reducer_n[0][r][ch] = (ch < Co) ? $signed(o_OA[0][2][ Co*(2-r)+ch ])                                        : 0;
+                    oa_reducer_n[1][r][ch] = (ch < Co) ? $signed(o_OA[0][1][ Co*(2-r)+ch ]) +  $signed(o_OA[1][2][ Co*(2-r)+ch ])  : 0;
+                    oa_reducer_n[7][r][ch] = (ch < Co) ? $signed(o_OA[5][0][ Co*(2-r)+ch ]) +  $signed(o_OA[6][1][ Co*(2-r)+ch ])  : 0;
+                    oa_reducer_n[8][r][ch] = (ch < Co) ? $signed(o_OA[6][0][ Co*(2-r)+ch ])                                        : 0;
+                end
+            end
+
+            for (int id=2; id<7; id++ ) begin
+                for(int r=0; r<3; r++) begin
+                    for(int ch = 0; ch < `IA_CHANNEL; ch++) begin
+                        oa_reducer_n[id][r][ch] = (ch < Co) ? $signed(o_OA[id-2][0][ Co*(2-r)+ch ]) +  $signed(o_OA[id-1][1][ Co*(2-r)+ch ]) +  $signed(o_OA[id][2][ Co*(2-r)+ch ])  : 0;                
+                    end
+                end
+            end
+        endtask 
+
+        task COMPRESS;
+        
+        endtask
+
+    // ========================== State Control (Combinational Circuit) ========= unfinish============
+        always_comb begin  
+            state_n = state;
+            case(state)
+                S_IDLE:         state_n = (i_start)                   ? S_CAMERA : state;
+                // S_CAMERA:       state_n = (o_finish_CAMERA)           ? S_PUT_W_1 : state;
+                // S_IDLE:         state_n = S_CAMERA;
+                S_CAMERA:       state_n = S_PUT_W_1;
+                S_PUT_W_1:      state_n = S_CONV_1;
+                S_CONV_1:       state_n = (o_finish_PE==PEs_FINISH)   ? S_REDUCE_1 : state; 
+                S_REDUCE_1:     state_n = S_TOOABUFFER_1;
+                S_TOOABUFFER_1: state_n = (h==Hi-1 && w_start==w_start_max-1) ? S_COMPRESS_1 : S_CONV_1;
+
+                S_COMPRESS_1:   state_n = S_PUT_W_2; // need to rethink
+
+                S_PUT_W_2:      state_n = S_CONV_2;
+                S_CONV_2:       state_n = (o_finish_PE==PEs_FINISH)   ? S_REDUCE_2 : state; 
+                S_REDUCE_2:     state_n = S_TOOABUFFER_2;
+                S_TOOABUFFER_2:       state_n = (h==Hi-1 && w_start==w_start_max-1) ? S_MAXPOOL  : S_CONV_2;
+
+                S_MAXPOOL:      state_n = S_LINEAR; // need to rethink
+                S_LINEAR:       state_n = S_OUT;    // need to rethink
+                // S_OUT:          state_n = S_CAMERA; // need to rethink
+
+                
+            endcase
         end
 
 
+    // ========================== Combinational Circuit =====unfinish================================
+        always_comb begin 
+            i_start_PEs_n  = i_start_PEs;
+            o_random_out_n = o_random_out;
+            Hi_n           = Hi;
+            Wi_n           = Wi;
+            w_start_max_n  = w_start_max;
+            h_n            = h;
+            w_start_n      = w_start;
+            Co_n           = Co;
 
+            ia_iters_n     = ia_iters;
+            ia_len_n       = ia_len;
+            ia_data_n      = ia_data;
+            ia_c_idx_n     = ia_c_idx;
+            oa_reducer_n   = oa_reducer;
+            oa_buffer_n    = oa_buffer;
 
-        $finish;
-    end
-	initial begin
-		#(50000*CLK)
-		$display(".A.B.O.R.T.");
-		$finish;
-	end
+            case(state)
+                S_IDLE: begin
+                end
+
+                S_CAMERA: begin
+                end
+
+                S_PUT_W_1: begin
+                    PUT_W();
+                    Hi_n = 16;
+                    Wi_n = 16;
+                    Co_n = 8;
+                    w_start_max_n = 3;
+                end
+
+                S_CONV_1 : begin
+                    CONV();
+
+                end
+
+                S_REDUCE_1: begin
+                    TOOAREDUCER();
+                    i_start_PEs_n = 0;
+                end
+
+                S_TOOABUFFER_1: begin // put to oa_buffer
+                    TOOABUFFER();
+                    h_n = (h == Hi-1) ? 0 : h+1;
+                    if (h==Hi-1) begin
+                        w_start_n = (w_start == w_start_max-1) ? 0 : w_start+1;
+                    end
+                end
+
+                S_COMPRESS_1: begin // put to IA
+                end
+
+                S_PUT_W_2: begin
+                    PUT_W();
+                    Hi_n = 14;
+                    Wi_n = 14;
+                    Co_n = 8;
+                    w_start_max_n = 2;
+                end
+
+                S_CONV_2 : begin
+                    CONV();
+                end
+
+                S_REDUCE_2: begin
+                    TOOAREDUCER();
+                    i_start_PEs_n = 0;
+                end
+
+                S_TOOABUFFER_2: begin // put to oa_buffer
+                    TOOABUFFER();
+                    h_n = (h == Hi-1) ? 0 : h+1;
+                    if (h==Hi-1) begin
+                        w_start_n = (w_start == w_start_max-1) ? 0 : w_start+1;
+                    end
+                end
+
+                S_MAXPOOL: begin // from oa_buffer to ia_buffer, one cycle
+                end
+
+                S_LINEAR : begin
+                end
+
+                S_OUT    : begin
+                end
+
+            endcase
+
+        end
+
+    // ========================== Sequential Circuit ========================================
+        always_ff @(posedge i_clk or negedge i_rst_n) begin
+            if (!i_rst_n) begin
+                i_start_PEs  <= 0;
+                o_random_out <= 0;
+                state        <= S_IDLE;
+                Hi           <= 0;
+                Wi           <= 0;
+                w_start_max  <= 0;
+                h            <= 0;
+                w_start      <= 0;
+                Co           <= 0;
+
+                
+
+                for (int r=0; r < `IA_ROW; r++ ) begin
+                    for (int c=0; c < `IA_COL; c++ ) begin
+                        ia_iters [r][c] <= 0;
+                        ia_len   [r][c] <= 0;
+                        for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
+                            ia_data  [r][c][ch] <= 0;
+                            ia_c_idx [r][c][ch] <= 0;
+                            oa_buffer[r][c][ch] <= 0;
+                        end
+                    end
+                end
+
+                for (int id=0; id < `IA_ROW+`IA_COL-2; id++ ) begin
+                    for (int row=0; row < 3; row++ ) begin
+                        for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
+                            oa_reducer[id][row][ch] <= 0;
+                        end
+                    end
+                end
+
+                
+            end
+            else begin
+                i_start_PEs  <= i_start_PEs_n;
+                o_random_out <= o_random_out_n;
+                state        <= state_n;
+                Hi           <= Hi_n;
+                Wi           <= Wi_n;
+                w_start_max  <= w_start_max_n;
+                h            <= h_n;
+                w_start      <= w_start_n;
+                Co           <= Co_n;
+
+                ia_iters     <= ia_iters_n;
+                ia_len       <= ia_len_n;
+                ia_data      <= ia_data_n;
+                ia_c_idx     <= ia_c_idx_n;
+                oa_reducer   <= oa_reducer_n;
+                oa_buffer    <= oa_buffer_n;
+                
+
+            end
+
+        end
 
 endmodule
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

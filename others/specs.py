@@ -631,8 +631,9 @@ class Top():
                        
                 
                 ## Put to OAbuffers
-                # self._OAbuffers = np.array(self._OAbuffers)
-                # self._OAreducebuffers = np.array(self._OAreducebuffers)
+
+                ## self._OAbuffers       [  row, col,      ch  ]
+                ## self._OAreducebuffers [  id,  row(0:2), ch  ]
                 if (w_start == 0):
                     if (h == 0):
                         self._OAbuffers[0,0:7,:] += self._OAreducebuffers[2:9,2,:,-1]
@@ -650,7 +651,8 @@ class Top():
                         self._OAbuffers[h-0,0:7,:] += self._OAreducebuffers[2:9,2,:,-1]
                 elif (w_start == w_start_max-1):
                     row_left = w_start*7-2
-                    row_right = self._Wo[layer]+1
+                    row_right = Wi-1
+                    # row_right = self._Wo[layer]+1
                     diff = row_right-row_left -1
                     if (h == 0):
                         self._OAbuffers[0,row_left:row_right,:] += self._OAreducebuffers[0:diff,2,:,-1]
