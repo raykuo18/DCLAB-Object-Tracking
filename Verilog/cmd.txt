@@ -1,0 +1,23 @@
+
+
+
+
+
+----------- WMem.sv ------------------
+ncverilog tb_WMem.sv WMem.sv +access+rw
+
+----------- PE_TEMP.sv ------------------
+ncverilog PE_TEMP.sv +access+rw
+
+----------- Top.sv ------------------
+ncverilog Top.sv +access+rw
+
+
+
+
+
+
+
+
+
+ncverilog tb_I2C.sv I2C.sv +access+rw

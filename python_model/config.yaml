@@ -1,0 +1,10 @@
+PE:
+  AIM:
+    cmp_array_size: 32
+    Encoder:
+      step_size: 32 # smae as cmp_array_size
+  OA_Addr:
+
+Top:
+  layers: 5
+  
