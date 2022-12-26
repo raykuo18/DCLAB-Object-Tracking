@@ -11,7 +11,7 @@ module	IAInterpolation(
 						o_finish,
 						o_compressed_IA
 							);
-`include "VGA_Param.h"
+//`include "VGA_Param.h"
 
 `ifdef VGA_640x480p60
 //	Horizontal Parameter	( Pixel )
