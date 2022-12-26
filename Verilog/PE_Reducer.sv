@@ -64,7 +64,6 @@ Computation comp(
 always_comb begin // state
     case(state_r)
         S_IDLE: state_w = (i_start) ? S_PROC: state_r;
-        //S_PROC: state_w = (proc_finish) ? S_SLCT: state_r;
         S_PROC: state_w = S_SLCT;
         S_SLCT: state_w = S_IDLE;
         default: state_w = state_r;

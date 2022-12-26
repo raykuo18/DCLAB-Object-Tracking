@@ -60,7 +60,7 @@ module tb;
     assign i_r[0] = 3'd0;
     assign i_r[1] = 3'd1;
     assign i_r[2] = 3'd2;
-    assign i_r[3] = 3'd3;
+    assign i_r[3] = 3'd0;
     assign i_k[0] = 5'd0;
     assign i_k[1] = 5'd0;
     assign i_k[2] = 5'd0;
