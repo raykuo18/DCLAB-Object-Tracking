@@ -1,37 +1,7 @@
 `timescale 1us/1us
 
 
-// --------------------- `define for WMem ------------------------
-    `define W_DATA_BITWIDTH    16
-    `define W_C_BITWIDTH       5   // log2(# Channel)
-    `define W_R_BITWIDTH       2 
-    `define W_K_BITWIDTH       5 
-    `define W_POS_PTR_BITWIDTH 11 
-
-    `define W_C_LENGTH_L1_S0  123
-    `define W_R_LENGTH_L1_S0  48
-    `define W_C_LENGTH_L1_S1  130
-    `define W_R_LENGTH_L1_S1  48
-    `define W_C_LENGTH_L1_S2  124
-    `define W_R_LENGTH_L1_S2  48
-
-    `define W_C_LENGTH_L2_S0  474
-    `define W_R_LENGTH_L2_S0  48
-    `define W_C_LENGTH_L2_S1  460
-    `define W_R_LENGTH_L2_S1  48
-    `define W_C_LENGTH_L2_S2  446
-    `define W_R_LENGTH_L2_S2  48
-
-    `define W_C_LENGTH        474 // max of C_LENGTH
-    `define W_R_LENGTH        48  // max of R_LENGTH
-
-
-// --------------------- `define for IA ------------------------
-    `define IA_DATA_BITWIDTH    16
-    `define IA_C_BITWIDTH       5   // log2(# Channel)
-    `define IA_CHANNEL 8
-    `define IA_ROW 16
-    `define IA_COL 16
+`include "header.h"
 
 
 
@@ -4534,12 +4504,12 @@ module tb_PE_TEMP;
         // ----------------------- For PE ------- unfinished------------------------
             logic                                  i_start_PEs;
             // IA bundle
-            logic        [$clog2(`IA_ROW)-1:0]     i_ia_h;
-            logic        [$clog2(`IA_COL)-1:0]     i_ia_w;
+            logic        [$clog2(`IA_ROW):0]     i_ia_h;
+            logic        [$clog2(`IA_COL):0]     i_ia_w;
             logic signed [`IA_DATA_BITWIDTH-1:0]   i_ia_data   [0:`IA_CHANNEL-1];
             logic        [`IA_C_BITWIDTH-1:0]      i_ia_c_idx  [0:`IA_CHANNEL-1];
-            logic        [$clog2(`IA_CHANNEL)-1:0] i_ia_iters; // ---------------------- need discussion -> 0
-            logic        [$clog2(`IA_CHANNEL)-1:0] i_ia_len;
+            logic        [$clog2(`IA_CHANNEL):0] i_ia_iters; // ---------------------- need discussion -> 0
+            logic        [$clog2(`IA_CHANNEL):0] i_ia_len;
             // W bundle
             logic        [1:0]                     i_w_s;
             logic signed [`W_DATA_BITWIDTH-1:0]    i_w_data    [0:`W_C_LENGTH-1]; 
@@ -4547,11 +4517,12 @@ module tb_PE_TEMP;
             logic        [`W_POS_PTR_BITWIDTH-1:0] i_pos_ptr   [0:`W_R_LENGTH-1];
             logic        [`W_R_BITWIDTH-1:0]       i_r_idx     [0:`W_R_LENGTH-1];
             logic        [`W_K_BITWIDTH-1:0]       i_k_idx     [0:`W_R_LENGTH-1];
-            logic        [$clog2(`W_C_LENGTH)-1:0] i_w_iters;  // ---------------------- need discussion -> ceil(w_len/32)
-            logic        [$clog2(`W_C_LENGTH)-1:0] i_w_len;
+            logic        [$clog2(`W_C_LENGTH):0] i_w_iters;  // ---------------------- need discussion -> ceil(w_len/32)
+            logic        [$clog2(`W_C_LENGTH):0] i_w_len;
             // Output
             logic                                  o_finish_PE;
-            logic signed [`IA_DATA_BITWIDTH-1:0]   o_OA        [0:`IA_ROW-1][0:`IA_CHANNEL-1];
+            logic signed [`IA_DATA_BITWIDTH-1:0]   o_OA        [0:`IA_ROW*`IA_CHANNEL-1];
+            // logic signed [`IA_DATA_BITWIDTH-1:0]   o_OA        [0:`IA_ROW-1][0:`IA_CHANNEL-1];
 
 	PE_TEMP pe_temp0(
         .i_rst_n        (rst),

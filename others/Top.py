@@ -16,6 +16,15 @@ OA_data = np.array(top._OA_data)
 OA_offset = np.array(top._OA_offset)
 OA_len = np.array(top._OA_len )
 
+# print(OAbuffers.shape)
+# print(OA_counter)
+# print(OA_c_idx.shape)
+# print(OA_data.shape)
+# print(OA_offset.shape)
+# print(OA_len.shape)
+
+top.Conv(layer = layer)
+
 print(OAbuffers.shape)
 print(OA_counter)
 print(OA_c_idx.shape)
