@@ -39,7 +39,8 @@ module PE_TEMP(
     input        [$clog2(`IA_COL)-1:0]       i_ia_w,
     input signed [`IA_DATA_BITWIDTH-1:0]     i_ia_data   [0:`IA_CHANNEL-1],
     input        [`IA_C_BITWIDTH-1:0]        i_ia_c_idx  [0:`IA_CHANNEL-1],
-    input        [$clog2(`IA_CHANNEL)-1:0]   i_ia_iters, // ---------------------- need discussion
+    input        [$clog2(`IA_CHANNEL)-1:0]   i_ia_iters, // ---------------------- need discussion -> 0
+    input        [$clog2(`IA_CHANNEL)-1:0]   i_ia_len,
     // W bundle
     input        [1:0]                       i_w_s,
     input signed [`W_DATA_BITWIDTH-1:0]      i_w_data    [0:`W_C_LENGTH-1],
@@ -47,8 +48,8 @@ module PE_TEMP(
     input        [`W_POS_PTR_BITWIDTH-1:0]   i_pos_ptr   [0:`W_R_LENGTH-1],
     input        [`W_R_BITWIDTH-1:0]         i_r_idx     [0:`W_R_LENGTH-1],
     input        [`W_K_BITWIDTH-1:0]         i_k_idx     [0:`W_R_LENGTH-1],
-    input        [$clog2(`W_C_LENGTH)-1:0]   i_w_iters,  // ---------------------- need discussion
-
+    input        [$clog2(`W_C_LENGTH)-1:0]   i_w_iters,  // ---------------------- need discussion -> ceil(w_len/32)
+    input        [$clog2(`W_C_LENGTH)-1:0]   i_w_len,
     // Output
     output logic                                   o_finish,
     output logic signed [`IA_DATA_BITWIDTH-1:0]    o_OA        [0:`IA_ROW-1][0:`IA_CHANNEL-1]

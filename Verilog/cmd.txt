@@ -9,6 +9,8 @@ ncverilog tb_WMem.sv WMem.sv +access+rw
 ----------- PE_TEMP.sv ------------------
 ncverilog PE_TEMP.sv +access+rw
 
+ncverilog tb_PE_TEMP.sv PE_TEMP.sv +access+rw
+
 ----------- Top.sv ------------------
 ncverilog Top.sv +access+rw
 
