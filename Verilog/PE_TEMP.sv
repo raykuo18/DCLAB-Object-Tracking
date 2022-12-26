@@ -23,7 +23,7 @@ module PE_TEMP(
     // Output
     output logic                                   o_finish,
     output logic signed [`IA_DATA_BITWIDTH-1:0]    o_OA        [0:`IA_ROW*`IA_CHANNEL-1]
-    // output logic signed [`IA_DATA_BITWIDTH-1:0]    o_OA        [0:`IA_ROW-1][0:`IA_CHANNEL-1]
+   
 );
 
 // ===== Parameters definition ===== 
@@ -35,7 +35,7 @@ localparam S_FINISH = 2;
 // ===== Output logic ===== 
 logic                                   o_finish_n;
 logic signed [`IA_DATA_BITWIDTH-1:0]    o_OA_n         [0:`IA_ROW*`IA_CHANNEL-1];
-// logic signed [`IA_DATA_BITWIDTH-1:0]    o_OA_n        [0:`IA_ROW-1][0:`IA_CHANNEL-1];
+
 
 
 // ===== logic ===== 
@@ -48,11 +48,7 @@ always_comb begin
 
     for (int k=0; k < `IA_ROW*`IA_CHANNEL; k++ ) o_OA_n[k] = o_OA[k];
 
-    // for (int r=0; r < `IA_ROW; r++ ) begin
-    //     for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
-    //         o_OA_n[r][ch] = o_OA[r][ch];
-    //     end
-    // end
+   
 
     case(state)
         S_IDLE: begin
@@ -79,21 +75,13 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
         state    <= S_IDLE;
         o_finish <= 0;
         for (int k=0; k < `IA_ROW*`IA_CHANNEL; k++ ) o_OA[k] = 0;
-        // for (int r=0; r < `IA_ROW; r++ ) begin
-        //     for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
-        //         o_OA[r][ch] = 0;
-        //     end
-        // end	
+        
 	end
 	else begin
 		state    <= state_n;
         o_finish <= o_finish_n;
         for (int k=0; k < `IA_ROW*`IA_CHANNEL; k++ ) o_OA[k] <= o_OA_n[k];
-        // for (int r=0; r < `IA_ROW; r++ ) begin
-        //     for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
-        //         o_OA[r][ch] = o_OA_n[r][ch];
-        //     end
-        // end
+       
     end
 
 end
