@@ -4621,11 +4621,6 @@ module tb_PE_TEMP;
 
 
 
-        // for (int i = 0; i < 5000; i++)
-
-		// for (int i = 0; i < 5000; i++) begin
-		// 		@(posedge clk);
-		// 	end
         $finish;
     end
 	initial begin
