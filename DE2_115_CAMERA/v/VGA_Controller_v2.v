@@ -57,7 +57,11 @@ module	VGA_Controller(	//	Host Side
 						//	Control Signal
 						iCLK,
 						iRST_N,
-						iZOOM_MODE_SW
+						iZOOM_MODE_SW,
+
+						// for interpolation
+						o_take_data,
+
 							);
 //`include "VGA_Param.h"
 
@@ -69,32 +73,46 @@ parameter	H_SYNC_ACT	=	640;
 parameter	H_SYNC_FRONT=	16;
 parameter	H_SYNC_TOTAL=	800;
 
+parameter   H_ITP_START =   128;
+parameter   H_ITP_RANGE =   384;
+
 //	Virtical Parameter		( Line )
 parameter	V_SYNC_CYC	=	2;
 parameter	V_SYNC_BACK	=	33;
 parameter	V_SYNC_ACT	=	480;	
 parameter	V_SYNC_FRONT=	10;
-parameter	V_SYNC_TOTAL=	525; 
+parameter	V_SYNC_TOTAL=	525;
+
+parameter   V_ITP_START =   48;
+parameter   V_ITP_RANGE =   384;
 
 `else
- // SVGA_800x600p60
-////	Horizontal Parameter	( Pixel )
-parameter	H_SYNC_CYC	=	128;         //Peli
-parameter	H_SYNC_BACK	=	88;
-parameter	H_SYNC_ACT	=	800;	
-parameter	H_SYNC_FRONT=	40;
-parameter	H_SYNC_TOTAL=	1056;
-//	Virtical Parameter		( Line )
-parameter	V_SYNC_CYC	=	4;
-parameter	V_SYNC_BACK	=	23;
-parameter	V_SYNC_ACT	=	600;	
-parameter	V_SYNC_FRONT=	1;
-parameter	V_SYNC_TOTAL=	628;
+    // SVGA_800x600p60
+    ////	Horizontal Parameter	( Pixel )
+    parameter	H_SYNC_CYC	=	128;         //Peli
+    parameter	H_SYNC_BACK	=	88;
+    parameter	H_SYNC_ACT	=	800;	
+    parameter	H_SYNC_FRONT=	40;
+    parameter	H_SYNC_TOTAL=	1056;
+
+	parameter   H_ITP_START =   208;
+	parameter   H_ITP_RANGE =   384;
+    //	Virtical Parameter		( Line )
+    parameter	V_SYNC_CYC	=	4;
+    parameter	V_SYNC_BACK	=	23;
+    parameter	V_SYNC_ACT	=	600;	
+    parameter	V_SYNC_FRONT=	1;
+    parameter	V_SYNC_TOTAL=	628;
+	
+	parameter   V_ITP_START =   108;
+	parameter   V_ITP_RANGE =   384;	
 
 `endif
 //	Start Offset
 parameter	X_START		=	H_SYNC_CYC+H_SYNC_BACK;
+parameter	X_START2 	= 	H_SYNC_CYC+H_SYNC_BACK+H_ITP_START;
 parameter	Y_START		=	V_SYNC_CYC+V_SYNC_BACK;
+parameter	Y_START2	= 	V_SYNC_CYC+V_SYNC_BACK+V_ITP_START;
 //	Host Side
 input		[9:0]	iRed;
 input		[9:0]	iGreen;
@@ -108,6 +126,8 @@ output	reg			oVGA_H_SYNC;
 output	reg			oVGA_V_SYNC;
 output	reg			oVGA_SYNC;
 output	reg			oVGA_BLANK;
+
+output  reg 		o_take_data;
 
 wire		[9:0]	mVGA_R;
 wire		[9:0]	mVGA_G;
@@ -125,6 +145,7 @@ input 				iZOOM_MODE_SW;
 //	Internal Registers and Wires
 reg		[12:0]		H_Cont;
 reg		[12:0]		V_Cont;
+reg 	[4:0] 		C_Cont;
 
 wire	[12:0]		v_mask;
 
@@ -135,15 +156,16 @@ assign v_mask = 13'd0 ;//iZOOM_MODE_SW ? 13'd0 : 13'd26;
 assign	mVGA_BLANK	=	mVGA_H_SYNC & mVGA_V_SYNC;
 assign	mVGA_SYNC	=	1'b0;
 
-assign	mVGA_R	=	(	H_Cont>=X_START 	&& H_Cont<X_START+H_SYNC_ACT &&
-						V_Cont>=Y_START+v_mask 	&& V_Cont<Y_START+V_SYNC_ACT )
-						?	iRed	:	0;
-assign	mVGA_G	=	(	H_Cont>=X_START 	&& H_Cont<X_START+H_SYNC_ACT &&
-						V_Cont>=Y_START+v_mask 	&& V_Cont<Y_START+V_SYNC_ACT )
-						?	iGreen	:	0;
-assign	mVGA_B	=	(	H_Cont>=X_START 	&& H_Cont<X_START+H_SYNC_ACT &&
-						V_Cont>=Y_START+v_mask 	&& V_Cont<Y_START+V_SYNC_ACT )
-						?	iBlue	:	0;
+
+assign	mVGA_R	=	(	H_Cont>=X_START2 	&& H_Cont<X_START2+H_ITP_RANGE &&
+						V_Cont>=Y_START2+v_mask 	&& V_Cont<Y_START2+V_ITP_RANGE)
+						?	iRed	:	iRed>>1;
+assign	mVGA_G	=	(	H_Cont>=X_START2 	&& H_Cont<X_START2+H_ITP_RANGE &&
+						V_Cont>=Y_START2+v_mask 	&& V_Cont<Y_START2+V_ITP_RANGE)
+						?	iGreen	:	iGreen>>1;
+assign	mVGA_B	=	(	H_Cont>=X_START2 	&& H_Cont<X_START2+H_ITP_RANGE &&
+						V_Cont>=Y_START2+v_mask 	&& V_Cont<Y_START2+V_ITP_RANGE)
+						?	iBlue	:	iBlue>>1;
 
 always@(posedge iCLK or negedge iRST_N)
 	begin
@@ -206,6 +228,23 @@ begin
 		mVGA_H_SYNC	<=	0;
 		else
 		mVGA_H_SYNC	<=	1;
+	end
+end
+always@(posedge iCLK or negedge iRST_N)
+begin
+	if(!iRST_N) begin
+		C_Cont 		<= 0;
+		o_take_data <= 0;
+	end
+	else begin
+		if (C_Cont == 5'd23) begin
+			C_Cont <= 0;
+			o_take_data <= 1;
+		end
+		else begin
+			C_Cont <= C_Cont +1;
+			o_take_data <= 0;
+		end
 	end
 end
 

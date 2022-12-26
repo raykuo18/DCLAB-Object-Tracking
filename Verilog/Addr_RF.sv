@@ -36,7 +36,7 @@ always_comb begin // RF
     case(state_r)
         S_IDLE: begin
             for(i=0; i<i_length; i=i+1) begin
-                RF_w[i] = 0;
+                RF_w[i] = RF_r[i];
             end
         end
         S_PROC: begin
