@@ -3,6 +3,69 @@
 from specs import *
 
 
+top = Top()
+
+layer = 2
+top.put_PEs_wbundles(layer = layer)
+
+OAbuffers = np.array(top._OAbuffers)
+OA_counter = top._OA_counter
+OA_c_idx = np.array(top._OA_c_idx)
+OA_data = np.array(top._OA_data)
+OA_offset = np.array(top._OA_offset)
+OA_len = np.array(top._OA_len )
+
+# print(OAbuffers.shape)
+# print(OA_counter)
+# print(OA_c_idx.shape)
+# print(OA_data.shape)
+# print(OA_offset.shape)
+# print(OA_len.shape)
+
+top.Conv(layer = layer)
+
+print(OAbuffers.shape)
+print(OA_counter)
+print(OA_c_idx.shape)
+print(OA_data.shape)
+print(OA_offset.shape)
+print(OA_len.shape)
+
+
+# for h in range(top._Ho[layer]):
+#     for w in range(top._Wo[layer]):
+#         print(top._OAbuffers[h][w][0], end =" ")
+#         if (w >10): break
+#     print("")
+#     if(h>10):break
+
+# top.Conv(layer = layer)
+
+
+
+# OAbuffers = np.array(top._OAbuffers)
+# OA_counter = top._OA_counter
+# OA_c_idx = np.array(top._OA_c_idx)
+# OA_data = np.array(top._OA_data)
+# OA_offset = np.array(top._OA_offset)
+# OA_len = np.array(top._OA_len )
+
+
+# print(OAbuffers.shape)
+# print(OAbuffers[0:6, 0:6, 0])
+# print(OA_counter)
+# print(OA_c_idx[0:40])
+# print(OA_data[0:40])
+# print(OA_offset[0:40])
+# print(OA_len[0:40])
+
+
+
+
+
+
+# print((top._PEs[3][2]._id))
+
 # print(not 1)
 
 WMem = WMemory()

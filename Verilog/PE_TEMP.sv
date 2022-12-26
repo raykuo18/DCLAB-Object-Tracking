@@ -23,6 +23,7 @@ module PE_TEMP(
     // Output
     output logic                                   o_finish,
     output logic signed [`IA_DATA_BITWIDTH-1:0]    o_OA        [0:`IA_ROW*`IA_CHANNEL-1]
+    // output logic signed [`IA_DATA_BITWIDTH-1:0]    o_OA        [0:`IA_ROW-1][0:`IA_CHANNEL-1]
 );
 
 // ===== Parameters definition ===== 
@@ -32,7 +33,9 @@ localparam S_FINISH = 2;
 
 
 // ===== Output logic ===== 
-logic o_finish_n;
+logic                                   o_finish_n;
+logic signed [`IA_DATA_BITWIDTH-1:0]    o_OA_n         [0:`IA_ROW*`IA_CHANNEL-1];
+// logic signed [`IA_DATA_BITWIDTH-1:0]    o_OA_n        [0:`IA_ROW-1][0:`IA_CHANNEL-1];
 
 
 // ===== logic ===== 
