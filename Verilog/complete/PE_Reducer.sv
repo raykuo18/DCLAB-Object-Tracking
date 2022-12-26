@@ -1,4 +1,5 @@
-`define Length 10
+`include "header.h"
+
 module PEReducer(
     input i_clk,
     input i_rst_n,
@@ -6,7 +7,7 @@ module PEReducer(
     input [2:0][6:0] i_addr[0:2],
     input [15:0] i_w[0:2],
     input [15:0] i_ia[0:2],
-    output [35:0] o_buf[0: `Length-1],
+    output [35:0] o_buf[0:`IA_ROW*`IA_CHANNEL-1],
     output o_finish
 );
 
@@ -17,8 +18,8 @@ localparam S_SLCT = 2'd2;
 logic [1:0] state_r, state_w;
 logic finish_r, finish_w;
 
-logic [35:0] buf_r[0: `Length-1], buf_w[0: `Length-1];
-logic [`Length-1:0] ptr_r, ptr_w;
+logic [35:0] buf_r[0: `IA_ROW*`IA_CHANNEL-1], buf_w[0: `IA_ROW*`IA_CHANNEL-1];
+logic [`IA_ROW*`IA_CHANNEL-1:0] ptr_r, ptr_w;
 
 logic addr_start, comp_start;
 logic [1:0] comp_code;

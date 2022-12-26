@@ -1,5 +1,8 @@
-`define K 4
-`define length 10
+// `define K 4
+// `define length 10
+// length -> W_C_LENGTH
+// K      -> IA_CHANNEL*3
+`include "header.h"
 
 module AddrToRF(
     input i_clk,
@@ -8,12 +11,12 @@ module AddrToRF(
     input [6:0] i_h,
     input [6:0] i_w,
     input [2:0] i_s,
-    input [2:0] i_r[0:`K-1],
-    input [4:0] i_k[0:`K-1],
-    input [10:0] i_ptr[0:`K-1],
+    input [2:0] i_r[0:`IA_CHANNEL*3-1],
+    input [4:0] i_k[0:`IA_CHANNEL*3-1],
+    input [10:0] i_ptr[0:`IA_CHANNEL*3-1],
     input [10:0] i_length,
     output o_finish,
-    output [2:0][6:0] o_RF[0:`length-1]
+    output [2:0][6:0] o_RF[0:`W_C_LENGTH-1]
 );
 localparam S_IDLE = 1'd0;
 localparam S_PROC = 1'd1;
@@ -21,10 +24,10 @@ localparam S_PROC = 1'd1;
 logic state_r, state_w;
 logic finish_r, finish_w;
 logic [10:0] counter_r, counter_w;
-logic [2:0][6:0] RF_r[0:`length-1], RF_w[0:`length-1];
+logic [2:0][6:0] RF_r[0:`W_C_LENGTH-1], RF_w[0:`W_C_LENGTH-1];
 
 logic [10:0] ptr_value_r, ptr_value_w;
-logic [`K-1:0] ptr_idx_r, ptr_idx_w;
+logic [`IA_CHANNEL*3-1:0] ptr_idx_r, ptr_idx_w;
 logic [6:0] r_r, r_w, k_r, k_w;
 
 assign o_finish = finish_w;
@@ -80,7 +83,7 @@ always_comb begin // ptr
             ptr_idx_w = 0;
         end
         S_PROC: begin
-            ptr_value_w = (ptr_idx_r < `K-1) ? i_ptr[ptr_idx_r+1]: ptr_value_r;
+            ptr_value_w = (ptr_idx_r < `IA_CHANNEL*3-1) ? i_ptr[ptr_idx_r+1]: ptr_value_r;
             ptr_idx_w = (counter_r == ptr_value_r-1) ? ptr_idx_r +1: ptr_idx_r;
         end
         default: begin
