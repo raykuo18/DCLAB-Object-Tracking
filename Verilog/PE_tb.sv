@@ -1,5 +1,5 @@
 `timescale 1ns/1ns
-`include "header.h"
+
 module tb;
 	localparam          CLK = 10;
 	localparam          HCLK = CLK/2;
@@ -8,33 +8,43 @@ module tb;
 	initial clk = 0;
 	always #HCLK clk = ~clk;
 
-    logic [$clog2(`IA_CHANNEL):0] ite;
-    logic [`W_C_BITWIDTH-1:0] word[0:31];
-    logic [`IA_C_BITWIDTH-1:0] IA[0:`IA_CHANNEL-1];
+    logic [2:0] ite;
+    logic [15:0] word[0:31];
+    logic [5:0] IA[0:255];
     logic finish;
-    logic valid[0:`W_C_LENGTH-1];
-    logic [8:0] pos[0:`W_C_LENGTH-1]; 
+    logic valid[0:31];
+    logic [8:0] pos[0:31]; 
 
     integer i;
     always_comb begin
         for(i=0; i<32; i=i+1) begin
-            word[i] = i;
+            word[i] = 2*i;
             IA[i] = 3*i;
         end
     end
-    assign ite = 0;
+    assign ite = 3'd0;
 
 
-	AIM aim(
+	PE pe(
 		.i_clk(clk),
 		.i_rst_n(rst),
 		.i_start(start_cal),
-        .i_ite(ite),
-        .i_word(word),
-        .i_IA(IA),
+        .i_ia_h(),
+        .i_ia_w(),
+        .i_ia_data(),
+        .i_ia_c_idx(),
+        .i_ia_iters(),
+        .i_ia_len(),
+        .i_w_s(),
+        .i_w_data(),
+        .i_w_c_idx(),
+        .i_pos_ptr(),
+        .i_r_idx(),
+        .i_k_idx(),
+        .i_w_iters(),
+        .i_w_len(),
         .o_finish(finish),
-        .o_valid(valid),
-        .o_pos(pos)
+        .o_output_feature(out)
 	);
 
 
@@ -63,7 +73,7 @@ module tb;
 
 
 	initial begin
-		$fsdbDumpfile("aim.fsdb");
+		$fsdbDumpfile("pe.fsdb");
 		$fsdbDumpvars;
         $fsdbDumpMDA();
 		

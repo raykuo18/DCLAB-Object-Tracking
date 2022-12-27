@@ -73,7 +73,7 @@ module tb;
 
 
 	initial begin
-		$fsdbDumpfile("pe.fsdb");
+		$fsdbDumpfile("pe_r.fsdb");
 		$fsdbDumpvars;
         $fsdbDumpMDA();
 		

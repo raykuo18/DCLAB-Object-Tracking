@@ -58,9 +58,9 @@ module	VGA_Controller(	//	Host Side
 						iCLK,
 						iRST_N,
 						iZOOM_MODE_SW,
-
+						i_itp_mode
 						// for interpolation
-						o_take_data,
+						//o_take_data
 
 							);
 //`include "VGA_Param.h"
@@ -127,7 +127,7 @@ output	reg			oVGA_V_SYNC;
 output	reg			oVGA_SYNC;
 output	reg			oVGA_BLANK;
 
-output  reg 		o_take_data;
+//output  reg 		o_take_data;
 
 wire		[9:0]	mVGA_R;
 wire		[9:0]	mVGA_G;
@@ -141,11 +141,12 @@ wire				mVGA_BLANK;
 input				iCLK;
 input				iRST_N;
 input 				iZOOM_MODE_SW;
+input				i_itp_mode;
 
 //	Internal Registers and Wires
 reg		[12:0]		H_Cont;
 reg		[12:0]		V_Cont;
-reg 	[4:0] 		C_Cont;
+reg 	[1:0] 		C_Cont;
 
 wire	[12:0]		v_mask;
 
@@ -159,13 +160,22 @@ assign	mVGA_SYNC	=	1'b0;
 
 assign	mVGA_R	=	(	H_Cont>=X_START2 	&& H_Cont<X_START2+H_ITP_RANGE &&
 						V_Cont>=Y_START2+v_mask 	&& V_Cont<Y_START2+V_ITP_RANGE)
-						?	iRed	:	iRed>>1;
+						?	iRed	:	iRed>>2;
 assign	mVGA_G	=	(	H_Cont>=X_START2 	&& H_Cont<X_START2+H_ITP_RANGE &&
 						V_Cont>=Y_START2+v_mask 	&& V_Cont<Y_START2+V_ITP_RANGE)
-						?	iGreen	:	iGreen>>1;
+						?	iGreen	:	iGreen>>2;
 assign	mVGA_B	=	(	H_Cont>=X_START2 	&& H_Cont<X_START2+H_ITP_RANGE &&
 						V_Cont>=Y_START2+v_mask 	&& V_Cont<Y_START2+V_ITP_RANGE)
-						?	iBlue	:	iBlue>>1;
+						?	iBlue	:	iBlue>>2;
+assign	mVGA_R2	=	(	H_Cont>=X_START2 	&& H_Cont<X_START2+H_ITP_RANGE &&
+						V_Cont>=Y_START2+v_mask 	&& V_Cont<Y_START2+V_ITP_RANGE && C_Cont == 2'd2)
+						?	iRed	:	iRed>>2;
+assign	mVGA_G2	=	(	H_Cont>=X_START2 	&& H_Cont<X_START2+H_ITP_RANGE &&
+						V_Cont>=Y_START2+v_mask 	&& V_Cont<Y_START2+V_ITP_RANGE && C_Cont == 2'd2)
+						?	iGreen	:	iGreen>>2;
+assign	mVGA_B2	=	(	H_Cont>=X_START2 	&& H_Cont<X_START2+H_ITP_RANGE &&
+						V_Cont>=Y_START2+v_mask 	&& V_Cont<Y_START2+V_ITP_RANGE && C_Cont == 2'd2)
+						?	iBlue	:	iBlue>>2;
 
 always@(posedge iCLK or negedge iRST_N)
 	begin
@@ -181,9 +191,9 @@ always@(posedge iCLK or negedge iRST_N)
 			end
 		else
 			begin
-				oVGA_R <= mVGA_R;
-				oVGA_G <= mVGA_G;
-                oVGA_B <= mVGA_B;
+				oVGA_R <= (i_itp_mode)? mVGA_R2: mVGA_R;
+				oVGA_G <= (i_itp_mode)? mVGA_G2: mVGA_G;
+                oVGA_B <= (i_itp_mode)? mVGA_B2: mVGA_B;
 				oVGA_BLANK <= mVGA_BLANK;
 				oVGA_SYNC <= mVGA_SYNC;
 				oVGA_H_SYNC <= mVGA_H_SYNC;
@@ -237,7 +247,7 @@ begin
 		o_take_data <= 0;
 	end
 	else begin
-		if (C_Cont == 5'd23) begin
+		if (C_Cont == 2'd2) begin
 			C_Cont <= 0;
 			o_take_data <= 1;
 		end

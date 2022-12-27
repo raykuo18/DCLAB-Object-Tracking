@@ -1,75 +1,44 @@
 `timescale 1ns/1ns
-
+`include "header.h"
 module tb;
 	localparam          CLK = 10;
 	localparam          HCLK = CLK/2;
 
 	logic clk, rst, start_cal;
-	initial clk = 0;
+	initial clk = 1;
 	always #HCLK clk = ~clk;
 
-    logic [6:0] i_h, i_w;
-    logic [2:0] i_r[0:3], i_s;
-    logic [4:0] i_k[0:3];
-    logic [10:0] i_ptr[0:3];
+    logic [$clog2(`IA_ROW):0] i_h, i_w;
+    logic [`W_R_BITWIDTH:0] i_r[0:`W_R_LENGTH-1]; 
+    logic [1:0] i_s;
+    logic [`W_K_BITWIDTH:0] i_k[0:`W_R_LENGTH-1];
+    logic [`W_POS_PTR_BITWIDTH:0] i_ptr[0:`W_R_LENGTH-1];
+    logic [$clog2(`W_C_LENGTH):0] length;
+
     logic finish;
-    logic [2:0][6:0] RF[0:9];
+    logic [2:0][6:0] RF[0:$clog2(`W_C_LENGTH)];
 
     initial begin
         i_h = 7'd10;
         i_w = 7'd11;
-        #55 begin
-            i_h = i_h+1;
-            i_w = i_w-1;
+        $display("\n\033[1;31m=============================================");
+	    $display("           Start the assignment of h & w!      ");
+	    $display("=============================================\033[0m");
+    end
+    integer i;
+    always_comb begin
+        for(i=0; i<`W_R_LENGTH; i=i+1) begin
+            i_r[i] = i[0];
+            i_k[i] = i[2:0];
+            i_ptr[i] = 3*i;
         end
-        #(CLK) begin
-            i_h = i_h+1;
-            i_w = i_w-1;
-        end
-        #(CLK) begin
-            i_h = i_h+1;
-            i_w = i_w-1;
-        end
-        #(CLK) begin
-            i_h = i_h+1;
-            i_w = i_w-1;
-        end
-        #(CLK) begin
-            i_h = i_h+1;
-            i_w = i_w-1;
-        end
-        #(CLK) begin
-            i_h = i_h+1;
-            i_w = i_w-1;
-        end
-        #(CLK) begin
-            i_h = i_h+1;
-            i_w = i_w-1;
-        end
-        #(CLK) begin
-            i_h = i_h+1;
-            i_w = i_w-1;
-        end
-        #(CLK) begin
-            i_h = i_h+1;
-            i_w = i_w-1;
-        end
+        $display("\n\033[1;31m=============================================");
+	    $display("           End the assignment of r & k!      ");
+	    $display("=============================================\033[0m");
     end
 
-
-    assign i_r[0] = 3'd0;
-    assign i_r[1] = 3'd1;
-    assign i_r[2] = 3'd2;
-    assign i_r[3] = 3'd0;
-    assign i_k[0] = 5'd0;
-    assign i_k[1] = 5'd0;
-    assign i_k[2] = 5'd0;
-    assign i_k[3] = 5'd1;
-    assign i_ptr[0] = 11'd0;
-    assign i_ptr[1] = 11'd3;
-    assign i_ptr[2] = 11'd5;
-    assign i_ptr[3] = 11'd8;
-    assign i_s = 3'd1;
+    assign i_s = 2'd1;
+    assign length = 10;
 
 	AddrToRF addr_rf(
 		.i_clk(clk),
@@ -81,7 +50,7 @@ module tb;
         .i_k(i_k),
         .i_s(i_s),
         .i_ptr(i_ptr),
-        .i_length(4'd10),
+        .i_length(length),
         .o_finish(finish),
         .o_RF(RF)
 	);

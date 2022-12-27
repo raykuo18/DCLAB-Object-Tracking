@@ -9,7 +9,7 @@ module tb;
 	always #HCLK clk = ~clk;
 
     logic [9:0] R, G, B;
-    logic take;
+    logic take, fetch, ok_fetch;
     logic [9:0] buffer[0:2][0:15][0:15];
 
     initial begin
@@ -24,6 +24,15 @@ module tb;
         G = G+1;
         B = B+1;
     end
+    initial begin
+        fetch = 0;
+        #(500*CLK) fetch = 1;
+        #(CLK) fetch = 0;
+        #(500*CLK) fetch = 1;
+        #(CLK) fetch = 0;
+        #(500*CLK) fetch = 1;
+        #(CLK) fetch = 0;
+    end
 
 
 
@@ -34,6 +43,8 @@ module tb;
         .i_G(G),
         .i_B(B),
         .i_take(take),
+        .i_fetch(fetch),
+        .o_oktofetch(ok_fetch),
         .o_buf(buffer)
 	);
 
@@ -55,7 +66,7 @@ module tb;
 		$fsdbDumpvars;
         $fsdbDumpMDA();
 		
-		for (int i = 0; i < 1500; i++) begin
+		for (int i = 0; i < 2000; i++) begin
 			@(posedge clk);
 		end
 		$finish;

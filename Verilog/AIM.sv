@@ -1,13 +1,14 @@
+`include "header.h"
 module AIM(
     input i_clk,
     input i_rst_n,
     input i_start,
-    input [2:0] i_ite, // DO SUBTRACT 1, ex, run 2 iteration -> i_ite = 1
-    input [15:0] i_word[0:31],
-    input [5:0] i_IA[0:255], // 8*32 = 256
+    input [$clog2(`IA_CHANNEL):0] i_ite, // DO SUBTRACT 1, ex, run 2 iteration -> i_ite = 1
+    input [`W_C_BITWIDTH-1:0] i_word[0:31],
+    input [`IA_C_BITWIDTH-1:0] i_IA[0:`IA_CHANNEL-1], // 8*32 = 256
     output o_finish,
-    output o_valid[0:31],
-    output [8:0] o_pos[0:31]
+    output o_valid[0:`W_C_LENGTH-1],
+    output [8:0] o_pos[0:`W_C_LENGTH-1] 
 );
 
 localparam S_IDLE = 2'd0;
@@ -15,27 +16,34 @@ localparam S_COMP = 2'd1;
 localparam S_ENCO = 2'd2;
 
 logic [1:0]     state_r, state_w;
-logic [2:0]     ite_counter_r, ite_counter_w;
+logic [$clog2(`IA_CHANNEL):0]     ite_counter_r, ite_counter_w;
 logic [31:0]    map_r[0:31], map_w[0:31];
 logic [31:0]    match_r, match_w;
+logic [`W_C_LENGTH-1:0] ptr_r, ptr_w;
 
 logic           finish_r, finish_w;
 logic           valid_r[0:31], valid_w[0:31];
 logic [8:0]     pos_r[0:31], pos_w[0:31];
+logic           valid_all_r[0:`W_C_LENGTH-1], valid_all_w[0: `W_C_LENGTH-1];
+logic [8:0]     pos_all_r[0:`W_C_LENGTH-1], pos_all_w[0:`W_C_LENGTH-1];
 
 logic           i_encode_start;
 logic           i_encode_finish[0:31];
-logic [5:0]     IA_r[0:31], IA_w[0:31];
+logic [`IA_C_BITWIDTH-1:0]     IA_r[0:31], IA_w[0:31];
 
 assign i_encode_start = (state_r == S_ENCO);
 assign o_finish = finish_r;
-assign o_valid = valid_w;
-assign o_pos = pos_w;
+assign o_valid = valid_all_w;
+assign o_pos = pos_all_w;
 
 // ===== Combinational Blocks ===== 
 always_comb begin //IA
     case(state_r)
-        S_COMP: IA_w = i_IA[(ite_counter_r << 5) +: 32];
+        //S_COMP: IA_w = i_IA[(ite_counter_r << 5) +: 32];
+        S_COMP: begin
+            IA_w[0:`IA_CHANNEL-1] = i_IA;
+            IA_w[`IA_CHANNEL:31] = IA_r[`IA_CHANNEL:31];
+        end
         default: IA_w = IA_r;
     endcase
 end
@@ -61,6 +69,12 @@ always_comb begin // finish
         default: finish_w = 1'd0;
     endcase
 end
+always_comb begin //ptr
+    case(state_r) 
+        S_ENCO: ptr_w = ptr_r + 1;
+        default: ptr_w = ptr_r;
+    endcase
+end
 
 integer j, k;
 always_comb begin
@@ -71,10 +85,10 @@ always_comb begin
         end
         S_COMP: begin
             for(j=0; j<32; j=j+1) begin
-                for(k=0; k<32; k=k+1) begin
+                for(k=0; k<`IA_CHANNEL; k=k+1) begin
                     map_w[j][k] = (IA_w[k] == i_word[j]);
                 end
-                match_w[j] = (map_w[j] != 32'd0) ? 1'd1: match_r[j]; // ***
+                match_w[j] = (map_w[j] != 32'd0) ? 1'd1: match_r[j];
             end
         end
         default: begin
@@ -84,27 +98,6 @@ always_comb begin
     endcase
 end
 
-/*
-genvar j, k;
-generate
-    if(state_r == S_IDLE) begin
-        map_w = map_r;
-        match_w = 32'd0;
-    end
-    else if(state_r == S_COMP) begin
-        for(j=0; j<32; j=j+1) begin
-            for(k=0; k<32; k=k+1) begin
-                map_w[j][k] = (IA[k] == i_word[j]);
-                match_w[j] = (IA[k] == i_word[j]) ? 1'd1: match_r[j];
-            end
-        end
-    end
-    else begin
-        map_w = map_r;
-        match_w = match_r;
-    end
-endgenerate*/
-
 genvar i;
 generate
     for(i=0; i<32; i=i+1) begin
@@ -113,20 +106,51 @@ generate
     end
 endgenerate
 
+integer b;
+always_comb begin
+    case(state_r)
+    S_IDLE: begin
+        valid_all_w = valid_all_r;
+        pos_all_w = pos_all_r;
+    end
+    ENCO: begin
+        for(b=0; b<`W_C_LENGTH; b=b+1) begin
+            if(b>= ((ptr_r-1)<<5)&& b < (ptr_r<<5)) begin
+                valid_all_w[b] = valid_w[(b-((ptr_r-1)<<5))];
+                pos_all_w[b] = pos_w[(b-((ptr_r-1)<<5))];
+            end
+            else begin
+                valid_all_w[b] = valid_all_r[b];
+                pos_all_w[b] = pos_all_r[b];
+            end
+        end
+    end
+    default: begin
+        valid_all_w = valid_all_r;
+        pos_all_w = pos_all_r;
+    end
+    endcase
+end
+
 // ===== Sequential Blocks =====
-integer s;
+integer s, t;
 always_ff @(posedge i_clk or negedge i_rst_n) begin
     if(!i_rst_n) begin
         state_r         <= S_IDLE;
         ite_counter_r   <= 3'd0;
         match_r         <= 32'd0;
         finish_r        <= 1'd0;
+        ptr_r           <= 0;
 
         for(s=0; s<32; s=s+1) begin
-            IA_r[s] <= 6'd0;
+            IA_r[s] <= 5'dz;
             map_r[s] <= 32'd0;
             valid_r[s] <= 1'd0;
             pos_r[s] <= 9'd0;
+        end
+        for(t=0; t<`W_C_LENGTH; t=t+1) begin
+            valid_all_r[t] <= 1'd0;
+            pos_all_r[t] <= 9'd0;
         end
     end
     else begin
@@ -138,6 +162,9 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
         valid_r         <= valid_w;
         pos_r           <= pos_w;
         IA_r            <= IA_w;
+        valid_all_r     <= valid_all_w;
+        pos_all_r       <= pos_all_w;
+        ptr_r           <= ptr_w;
     end
 end
 
@@ -149,7 +176,7 @@ module encoder(
     input i_start,
     input i_match,
     input [31:0] i_word,
-    input [2:0] i_ite,
+    input [$clog2(`IA_CHANNEL):0] i_ite,
     output o_valid,
     output [8:0] o_pos
 );
@@ -210,13 +237,6 @@ always_comb begin // state
         default: state_w = state_r;
     endcase
 end
-/*always_comb begin // finish
-    case(state_r)
-        S_IDLE: finish_w = 1'd0;
-        S_ENCO: finish_w = 1'd1;
-        default: finish_w = finish_r;
-    endcase
-end*/
 always_comb begin // valid & pos
     case(state_r)
         S_IDLE: begin
@@ -224,8 +244,14 @@ always_comb begin // valid & pos
             pos_w = 9'dz;
         end
         S_ENCO: begin
-            valid_w = (i_match) ? 1'd1 : 1'd0;
-            pos_w = (i_match) ? match_pos + (i_ite << 5) : 9'd0;
+            if(i_match == 1'b1) begin
+                valid_w = 1'd1;
+                pos_w =  match_pos + (i_ite << 5);
+            end
+            else begin
+                valid_w = 1'd0;
+                pos_w = 9'd0;
+            end
         end
         default: begin
             valid_w = valid_r;
@@ -237,13 +263,11 @@ end
 always_ff@(posedge i_clk or negedge i_rst_n) begin
     if(!i_rst_n) begin
         state_r     <= S_IDLE;
-        //finish_r    <= 1'd0;
         valid_r     <= 1'd0;
         pos_r       <= 9'dz;
     end
     else begin
         state_r     <= state_w;
-        //finish_r    <= finish_w;
         valid_r     <= valid_w;
         pos_r       <= pos_w;
     end

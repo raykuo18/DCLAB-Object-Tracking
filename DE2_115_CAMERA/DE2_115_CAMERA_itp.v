@@ -682,7 +682,8 @@ VGA_Controller		u1	(	//	Host Side
 							.iCLK(VGA_CTRL_CLK),
 							.iRST_N(DLY_RST_2),
 							.iZOOM_MODE_SW(SW[16]),
-							.o_take_data(take)
+							.i_itp_mode(SW[1])
+							//.o_take_data(take)
 						);
 
 endmodule
