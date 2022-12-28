@@ -4521,7 +4521,7 @@ module tb_PE_TEMP;
             logic        [$clog2(`W_C_LENGTH):0] i_w_len;
             // Output
             logic                                  o_finish_PE;
-            logic signed [`IA_DATA_BITWIDTH-1:0]   o_OA        [0:`IA_ROW*`IA_CHANNEL-1];
+            logic signed [`IA_DATA_BITWIDTH-1:0]   o_OA        [0:3*`IA_CHANNEL-1];
             // logic signed [`IA_DATA_BITWIDTH-1:0]   o_OA        [0:`IA_ROW-1][0:`IA_CHANNEL-1];
 
 	PE_TEMP pe_temp0(
@@ -4546,7 +4546,7 @@ module tb_PE_TEMP;
         .i_w_len        (i_w_len),
         // Output
         .o_finish       (o_finish),
-        .o_OA           (o_OA)
+        .o_output_feature           (o_OA)
 	);
 
 	initial begin

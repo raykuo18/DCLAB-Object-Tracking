@@ -22,7 +22,7 @@ module PE_TEMP(
     input        [$clog2(`W_C_LENGTH):0]   i_w_len,
     // Output
     output logic                                   o_finish,
-    output logic signed [`IA_DATA_BITWIDTH-1:0]    o_OA        [0:`IA_ROW*`IA_CHANNEL-1]
+    output logic signed [`IA_DATA_BITWIDTH-1:0]    o_output_feature        [0:3*`IA_CHANNEL-1]
    
 );
 
@@ -30,11 +30,12 @@ module PE_TEMP(
 localparam S_IDLE   = 0;
 localparam S_PROC   = 1;
 localparam S_FINISH = 2;
+localparam S_END = 3;
 
 
 // ===== Output logic ===== 
 logic                                   o_finish_n;
-logic signed [`IA_DATA_BITWIDTH-1:0]    o_OA_n         [0:`IA_ROW*`IA_CHANNEL-1];
+logic signed [`IA_DATA_BITWIDTH-1:0]    o_output_feature_n         [0:3*`IA_CHANNEL-1];
 
 
 
@@ -46,24 +47,50 @@ always_comb begin
     state_n    = state;
     o_finish_n = o_finish;
 
-    for (int k=0; k < `IA_ROW*`IA_CHANNEL; k++ ) o_OA_n[k] = o_OA[k];
+    for (int k=0; k < 3*`IA_CHANNEL; k++ ) o_output_feature_n[k] = o_output_feature[k];
 
    
 
-    case(state)
-        S_IDLE: begin
-            o_finish_n = 0;
-            if (i_start) state_n = S_PROC;
+    // case(state)
+    //     S_IDLE: begin
+    //         o_finish_n = 0;
+    //         if (i_start) state_n = S_PROC;
 
-        end
-        S_PROC: begin
-            state_n = S_FINISH;
-        end
-        S_FINISH: begin
-            o_finish_n = 1;
-            if (!i_start) state_n = S_IDLE;
-        end
-    endcase
+    //     end
+    //     S_PROC: begin
+    //         state_n = S_FINISH;
+    //     end
+    //     S_FINISH: begin
+    //         o_finish_n = 1;
+    //         if (!i_start) state_n = S_IDLE;
+    //     end
+    // endcase
+    
+    if (i_start) state_n = S_IDLE;
+    else begin
+        case(state)
+            S_IDLE: begin
+                o_finish_n = 0;
+                state_n = S_PROC;
+
+            end
+            S_PROC: begin
+                o_finish_n = 0;
+                state_n = S_FINISH;
+            end
+            S_FINISH: begin
+                o_finish_n = 1;
+                state_n = S_IDLE;
+                // if (!i_start) state_n = S_IDLE;
+            end
+            // S_END: begin
+            //     o_finish_n = 0;
+            //     state_n = S_END;
+            //     // if (!i_start) state_n = S_IDLE;
+            // end
+
+        endcase
+    end
 end
 
 
@@ -74,13 +101,13 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
 	if (!i_rst_n) begin
         state    <= S_IDLE;
         o_finish <= 0;
-        for (int k=0; k < `IA_ROW*`IA_CHANNEL; k++ ) o_OA[k] = 0;
+        for (int k=0; k < 3*`IA_CHANNEL; k++ ) o_output_feature[k] = 1;
         
 	end
 	else begin
 		state    <= state_n;
         o_finish <= o_finish_n;
-        for (int k=0; k < `IA_ROW*`IA_CHANNEL; k++ ) o_OA[k] <= o_OA_n[k];
+        for (int k=0; k < 3*`IA_CHANNEL; k++ ) o_output_feature[k] <= o_output_feature_n[k];
        
     end
 
