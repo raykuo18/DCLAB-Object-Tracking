@@ -3,6 +3,115 @@ module AIM(
     input i_clk,
     input i_rst_n,
     input i_start,
+    input [$clog2(`IA_CHANNEL):0] i_ite, 
+    input [`W_C_BITWIDTH-1:0] i_word[0:31], 
+    input [`IA_C_BITWIDTH-1:0] i_IA[0:`IA_CHANNEL-1],
+    output o_finish,
+    output o_valid[0:`W_C_LENGTH-1],
+    output [8:0] o_pos[0:`W_C_LENGTH-1]
+);
+
+localparam S_IDLE = 1'b0;
+localparam S_AIM  = 1'b1;
+
+logic state_r, state_w;
+logic [(`W_C_LENGTH>>5):0] ptr_r, ptr_w;
+logic [`W_C_LENGTH-1:0] ptr_idx;
+logic valid_r[0:`W_C_LENGTH-1], valid_w[0:`W_C_LENGTH-1];
+logic [8:0] pos_r[0:`W_C_LENGTH-1], pos_w[0:`W_C_LENGTH-1];
+
+
+logic valid_temp[0:31];
+logic [8:0] pos_temp[0:31];
+
+assign ptr_idx = ptr_r<<5;
+
+assign o_valid = valid_r;
+assign o_pos = pos_r;
+
+AIM_func aim_func(
+    .i_clk(i_clk),
+    .i_rst_n(i_rst_n),
+    .i_start(i_start),
+    .i_ite(i_ite),
+    .i_word(i_word),
+    .i_IA(i_IA),
+    .o_finish(o_finish),
+    .o_valid(valid_temp),
+    .o_pos(pos_temp)
+);
+
+// ===== Combinational Blocks =====
+always_comb begin // state
+    case(state_r)
+        S_IDLE: state_w = (i_start)? S_AIM: state_r;
+        S_AIM:  state_w = (o_finish) ? S_IDLE: state_r;
+        default: state_w = state_r;
+    endcase
+end
+always_comb begin // ptr
+    case(state_r)
+        S_IDLE: ptr_w = ptr_r;
+        S_AIM:  ptr_w = (o_finish) ? ptr_r + i_ite + 1: ptr_r;
+        default: ptr_w = ptr_r;
+    endcase
+end
+integer d, e, f;
+always_comb begin // valid & pos
+    case(state_r)
+        S_IDLE: begin 
+            valid_w = valid_r;
+            pos_w = pos_r;
+        end
+        S_AIM: begin
+            if(o_finish) begin
+                for(f=0; f<`W_C_LENGTH; f=f+1) begin
+                    if (f>= ptr_idx && f < (ptr_idx+32)) begin
+                        valid_w[f] = valid_temp[(f-ptr_idx)];
+                        pos_w[f] = pos_temp[(f-ptr_idx)];
+                    end
+                    else begin
+                        valid_w[f] = valid_r[f];
+                        pos_w[f] = pos_r[f];
+                    end
+                end
+            end
+            else begin
+                valid_w = valid_r;
+                pos_w = pos_r;
+            end
+        end
+        default: begin
+            valid_w = valid_r;
+            pos_w = pos_r;
+        end
+    endcase
+end
+// ===== Sequential Blocks =====
+integer i;
+always_ff@(posedge i_clk or negedge i_rst_n) begin
+    if(!i_rst_n) begin
+        state_r <= S_IDLE;
+        ptr_r <= 0;
+        for (i=0; i<`W_C_LENGTH; i=i+1) begin
+            valid_r[i] <= 0;
+            pos_r[i] <= 0;
+        end
+    end
+    else begin
+        state_r <= state_w;
+        ptr_r <= ptr_w;
+        valid_r <= valid_w;
+        pos_r <= pos_w;
+    end
+end
+
+endmodule
+
+module AIM_func(
+    input i_clk,
+    input i_rst_n,
+    input i_start,
     input [$clog2(`IA_CHANNEL):0] i_ite, ///////////////////////////////////// DO SUBTRACT 1, ex, run 2 iteration -> i_ite = 1
     input [`W_C_BITWIDTH-1:0] i_word[0:31], ////////////////////////////////////////weight channel idx
     input [`IA_C_BITWIDTH-1:0] i_IA[0:`IA_CHANNEL-1], //[`IA_C_BITWIDTH-1:0] i_IA  [0:`IA_CHANNEL-1]///////// 8*32 = 256
@@ -26,7 +135,15 @@ logic [8:0]     pos_r[0:31], pos_w[0:31];
 
 logic           i_encode_start;
 logic           i_encode_finish[0:31];
-logic [`IA_C_BITWIDTH-1:0]     IA_r[0:`IA_CHANNEL-1], IA_w[0:`IA_CHANNEL-1];
+logic [`IA_C_BITWIDTH-1:0]     IA_32b[0:31];
+
+assign IA_32b[0:7] = i_IA;
+genvar d;
+generate
+    for(d=8; d<32; d=d+1) begin
+        assign IA_32b[d] = 5'dz;
+    end
+endgenerate
 
 assign i_encode_start = (state_r == S_ENCO);
 assign o_finish = finish_r;
@@ -34,12 +151,6 @@ assign o_valid = valid_w;
 assign o_pos = pos_w;
 
 // ===== Combinational Blocks ===== 
-always_comb begin //IA
-    case(state_r)
-        S_COMP: IA_w = i_IA[(ite_counter_r << 5) +: 32];
-        default: IA_w = IA_r;
-    endcase
-end
 always_comb begin // state
     case(state_r)
         S_IDLE: state_w = (i_start) ? S_COMP : state_r;
@@ -73,7 +184,8 @@ always_comb begin
         S_COMP: begin
             for(j=0; j<32; j=j+1) begin
                 for(k=0; k<32; k=k+1) begin
-                    map_w[j][k] = (IA_w[k] == i_word[j]);
+                    if(IA_32b[k] == i_word[j]) map_w[j][k] = 1'b1;
+                    else map_w[j][k] = 1'b0;
                 end
                 match_w[j] = (map_w[j] != 32'd0) ? 1'd1: match_r[j]; // ***
             end
@@ -84,27 +196,6 @@ always_comb begin
         end
     endcase
 end
-
-/*
-genvar j, k;
-generate
-    if(state_r == S_IDLE) begin
-        map_w = map_r;
-        match_w = 32'd0;
-    end
-    else if(state_r == S_COMP) begin
-        for(j=0; j<32; j=j+1) begin
-            for(k=0; k<32; k=k+1) begin
-                map_w[j][k] = (IA[k] == i_word[j]);
-                match_w[j] = (IA[k] == i_word[j]) ? 1'd1: match_r[j];
-            end
-        end
-    end
-    else begin
-        map_w = map_r;
-        match_w = match_r;
-    end
-endgenerate*/
 
 genvar i;
 generate
@@ -124,7 +215,6 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
         finish_r        <= 1'd0;
 
         for(s=0; s<32; s=s+1) begin
-            IA_r[s] <= 6'd0;
             map_r[s] <= 32'd0;
             valid_r[s] <= 1'd0;
             pos_r[s] <= 9'd0;
@@ -138,7 +228,6 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
         map_r           <= map_w;
         valid_r         <= valid_w;
         pos_r           <= pos_w;
-        IA_r            <= IA_w;
     end
 end
 
@@ -220,13 +309,19 @@ end
 end*/
 always_comb begin // valid & pos
     case(state_r)
-        S_IDLE: begin
-            valid_w = 1'dz;
-            pos_w = 9'dz;
-        end
+        /*S_IDLE: begin
+            valid_w = 1'd0;
+            pos_w = 9'd0;
+        end*/
         S_ENCO: begin
-            valid_w = (i_match) ? 1'd1 : 1'd0;
-            pos_w = (i_match) ? match_pos + (i_ite << 5) : 9'd0;
+            if(i_match == 1) begin
+                valid_w = 1'd1;
+                pos_w = match_pos + (i_ite << 5);
+            end
+            else begin
+                valid_w = 1'b0;
+                pos_w = 9'd0;
+            end
         end
         default: begin
             valid_w = valid_r;
@@ -240,7 +335,7 @@ always_ff@(posedge i_clk or negedge i_rst_n) begin
         state_r     <= S_IDLE;
         //finish_r    <= 1'd0;
         valid_r     <= 1'd0;
-        pos_r       <= 9'dz;
+        pos_r       <= 9'd0;
     end
     else begin
         state_r     <= state_w;

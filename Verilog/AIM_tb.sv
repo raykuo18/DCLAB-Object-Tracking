@@ -1,5 +1,5 @@
 `timescale 1ns/1ns
-
+`include "header.h"
 module tb;
 	localparam          CLK = 10;
 	localparam          HCLK = CLK/2;
@@ -9,23 +9,35 @@ module tb;
 	always #HCLK clk = ~clk;
 
     logic [2:0] ite;
-    logic [15:0] word[0:31];
-    logic [5:0] IA[0:255];
+    logic [`W_C_BITWIDTH-1:0] word[0:31];
+    logic [`IA_C_BITWIDTH-1:0] IA[0:`IA_CHANNEL-1];
     logic finish;
-    logic valid[0:31];
-    logic [8:0] pos[0:31]; 
+    logic valid[0:`W_C_LENGTH-1];
+    logic [8:0] pos[0:`W_C_LENGTH-1]; 
 
-    integer i;
-    always_comb begin
+    integer i, j;
+    initial begin
         for(i=0; i<32; i=i+1) begin
             word[i] = i;
-            IA[i] = i;
+        end
+        for(j=0; j<`IA_CHANNEL; j=j+1) begin
+            IA[j] = j+2;
+        end
+
+        #95 begin
+            for(i=0; i<32; i=i+1) begin
+            word[i] = i+4;
+        end
+        for(j=0; j<`IA_CHANNEL; j=j+1) begin
+            IA[j] = j+2;
+        end
         end
     end
+        
     assign ite = 3'd0;
 
 
-	AIM aim(
+	AIM aim_tb(
 		.i_clk(clk),
 		.i_rst_n(rst),
 		.i_start(start_cal),
@@ -65,6 +77,7 @@ module tb;
 	initial begin
 		$fsdbDumpfile("aim.fsdb");
 		$fsdbDumpvars;
+        $fsdbDumpMDA();
 		
 		for (int i = 0; i < 150; i++) begin
 			@(posedge clk);
