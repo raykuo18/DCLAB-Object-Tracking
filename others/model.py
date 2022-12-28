@@ -1,5 +1,6 @@
 
 import torch.nn as nn
+
 class AlexNetV1_fused(nn.Module):
     output_stride = 8
 

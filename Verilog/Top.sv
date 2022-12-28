@@ -4,7 +4,9 @@ module Top(
 	input              i_clk,
 	input              i_rst_n,
 	input              i_start,
-	output logic [3:0] o_random_out
+    input              i_start_2,
+	output logic [3:0] o_random_out,
+    output logic [3:0] o_random_out_2
 );
     // ========================== Parameters definition ==================================
 
@@ -4487,6 +4489,592 @@ module Top(
                     `W_POS_PTR_BITWIDTH'b10101001101
                 };
 
+
+
+        // fc_data
+            localparam logic signed [`W_DATA_BITWIDTH-1:0] w_data_fc [0:576-1] =
+            '{
+                `W_DATA_BITWIDTH'b0000000100010001,
+                `W_DATA_BITWIDTH'b0000000011010101,
+                `W_DATA_BITWIDTH'b0000000011001101,
+                `W_DATA_BITWIDTH'b0000000000001100,
+                `W_DATA_BITWIDTH'b1111111111110001,
+                `W_DATA_BITWIDTH'b0000000001101000,
+                `W_DATA_BITWIDTH'b0000000011010001,
+                `W_DATA_BITWIDTH'b0000000001101101,
+                `W_DATA_BITWIDTH'b1111111110111100,
+                `W_DATA_BITWIDTH'b1111111101000111,
+                `W_DATA_BITWIDTH'b1111111011101100,
+                `W_DATA_BITWIDTH'b0000000000101011,
+                `W_DATA_BITWIDTH'b0000000001001100,
+                `W_DATA_BITWIDTH'b0000000100000101,
+                `W_DATA_BITWIDTH'b0000000001101110,
+                `W_DATA_BITWIDTH'b0000000000000001,
+                `W_DATA_BITWIDTH'b0000000000101001,
+                `W_DATA_BITWIDTH'b1111111101010100,
+                `W_DATA_BITWIDTH'b1111111111101011,
+                `W_DATA_BITWIDTH'b0000000011010011,
+                `W_DATA_BITWIDTH'b0000000010101010,
+                `W_DATA_BITWIDTH'b0000000000111000,
+                `W_DATA_BITWIDTH'b0000000000111010,
+                `W_DATA_BITWIDTH'b1111111100101001,
+                `W_DATA_BITWIDTH'b1111111101101001,
+                `W_DATA_BITWIDTH'b1111111111001110,
+                `W_DATA_BITWIDTH'b1111111101111100,
+                `W_DATA_BITWIDTH'b1111111110111001,
+                `W_DATA_BITWIDTH'b1111111110001011,
+                `W_DATA_BITWIDTH'b1111111100110101,
+                `W_DATA_BITWIDTH'b1111111111000000,
+                `W_DATA_BITWIDTH'b1111111111101000,
+                `W_DATA_BITWIDTH'b1111111110110111,
+                `W_DATA_BITWIDTH'b0000000000010101,
+                `W_DATA_BITWIDTH'b1111111111000101,
+                `W_DATA_BITWIDTH'b1111111111111010,
+                `W_DATA_BITWIDTH'b1111111110101000,
+                `W_DATA_BITWIDTH'b0000000010010100,
+                `W_DATA_BITWIDTH'b0000000100011001,
+                `W_DATA_BITWIDTH'b0000000000100111,
+                `W_DATA_BITWIDTH'b0000000010110010,
+                `W_DATA_BITWIDTH'b0000000110101011,
+                `W_DATA_BITWIDTH'b0000000000011111,
+                `W_DATA_BITWIDTH'b0000000000011101,
+                `W_DATA_BITWIDTH'b1111111111000110,
+                `W_DATA_BITWIDTH'b1111111111101110,
+                `W_DATA_BITWIDTH'b0000000100110111,
+                `W_DATA_BITWIDTH'b0000000010111111,
+                `W_DATA_BITWIDTH'b0000000010001000,
+                `W_DATA_BITWIDTH'b0000000000001011,
+                `W_DATA_BITWIDTH'b0000000000011000,
+                `W_DATA_BITWIDTH'b0000000000000011,
+                `W_DATA_BITWIDTH'b0000000100010010,
+                `W_DATA_BITWIDTH'b0000000101110111,
+                `W_DATA_BITWIDTH'b1111111101100100,
+                `W_DATA_BITWIDTH'b1111111110010101,
+                `W_DATA_BITWIDTH'b1111111101100001,
+                `W_DATA_BITWIDTH'b1111111110111010,
+                `W_DATA_BITWIDTH'b0000000001100001,
+                `W_DATA_BITWIDTH'b1111111110110011,
+                `W_DATA_BITWIDTH'b1111111101000011,
+                `W_DATA_BITWIDTH'b1111111100001111,
+                `W_DATA_BITWIDTH'b1111111100010000,
+                `W_DATA_BITWIDTH'b1111111100010001,
+                `W_DATA_BITWIDTH'b0000000000100000,
+                `W_DATA_BITWIDTH'b0000000000001001,
+                `W_DATA_BITWIDTH'b1111111000000011,
+                `W_DATA_BITWIDTH'b1111111111110010,
+                `W_DATA_BITWIDTH'b0000000000000010,
+                `W_DATA_BITWIDTH'b1111111110111110,
+                `W_DATA_BITWIDTH'b1111111011010100,
+                `W_DATA_BITWIDTH'b1111111110111111,
+                `W_DATA_BITWIDTH'b0000000000001001,
+                `W_DATA_BITWIDTH'b0000000001111100,
+                `W_DATA_BITWIDTH'b0000000001100100,
+                `W_DATA_BITWIDTH'b1111111110101100,
+                `W_DATA_BITWIDTH'b1111111101110001,
+                `W_DATA_BITWIDTH'b1111111111110010,
+                `W_DATA_BITWIDTH'b1111111100111110,
+                `W_DATA_BITWIDTH'b1111111110110001,
+                `W_DATA_BITWIDTH'b1111111101100111,
+                `W_DATA_BITWIDTH'b1111111100011010,
+                `W_DATA_BITWIDTH'b1111111001100101,
+                `W_DATA_BITWIDTH'b1111110101100100,
+                `W_DATA_BITWIDTH'b1111111011101011,
+                `W_DATA_BITWIDTH'b1111111100110001,
+                `W_DATA_BITWIDTH'b1111111111010111,
+                `W_DATA_BITWIDTH'b0000000000011010,
+                `W_DATA_BITWIDTH'b1111111110111010,
+                `W_DATA_BITWIDTH'b1111111110011101,
+                `W_DATA_BITWIDTH'b0000000000110110,
+                `W_DATA_BITWIDTH'b1111111111111101,
+                `W_DATA_BITWIDTH'b0000000001001011,
+                `W_DATA_BITWIDTH'b0000000000010011,
+                `W_DATA_BITWIDTH'b0000000000100110,
+                `W_DATA_BITWIDTH'b0000000000000101,
+                `W_DATA_BITWIDTH'b0000000000100111,
+                `W_DATA_BITWIDTH'b1111111111000000,
+                `W_DATA_BITWIDTH'b0000000000001001,
+                `W_DATA_BITWIDTH'b0000000001010000,
+                `W_DATA_BITWIDTH'b0000000001010111,
+                `W_DATA_BITWIDTH'b0000000010011110,
+                `W_DATA_BITWIDTH'b0000000011000010,
+                `W_DATA_BITWIDTH'b1111111101101100,
+                `W_DATA_BITWIDTH'b1111111110110011,
+                `W_DATA_BITWIDTH'b0000000001001100,
+                `W_DATA_BITWIDTH'b0000000010110101,
+                `W_DATA_BITWIDTH'b0000000010100111,
+                `W_DATA_BITWIDTH'b0000000101100010,
+                `W_DATA_BITWIDTH'b0000000001101111,
+                `W_DATA_BITWIDTH'b1111111111100100,
+                `W_DATA_BITWIDTH'b0000000000010010,
+                `W_DATA_BITWIDTH'b0000000010100011,
+                `W_DATA_BITWIDTH'b0000000011111010,
+                `W_DATA_BITWIDTH'b1111111000011101,
+                `W_DATA_BITWIDTH'b1111111101001010,
+                `W_DATA_BITWIDTH'b1111111110100001,
+                `W_DATA_BITWIDTH'b0000000001100110,
+                `W_DATA_BITWIDTH'b1111111100111000,
+                `W_DATA_BITWIDTH'b1111111111011110,
+                `W_DATA_BITWIDTH'b1111111110111001,
+                `W_DATA_BITWIDTH'b1111111101110000,
+                `W_DATA_BITWIDTH'b1111111111100000,
+                `W_DATA_BITWIDTH'b1111111110100110,
+                `W_DATA_BITWIDTH'b1111111011000011,
+                `W_DATA_BITWIDTH'b0000000001101110,
+                `W_DATA_BITWIDTH'b0000000010001000,
+                `W_DATA_BITWIDTH'b1111111111111010,
+                `W_DATA_BITWIDTH'b0000000001000011,
+                `W_DATA_BITWIDTH'b0000000000000011,
+                `W_DATA_BITWIDTH'b1111111110000110,
+                `W_DATA_BITWIDTH'b0000000011001101,
+                `W_DATA_BITWIDTH'b0000000000111000,
+                `W_DATA_BITWIDTH'b0000000100101010,
+                `W_DATA_BITWIDTH'b0000000100001000,
+                `W_DATA_BITWIDTH'b0000000100101001,
+                `W_DATA_BITWIDTH'b0000000011001001,
+                `W_DATA_BITWIDTH'b0000000011010000,
+                `W_DATA_BITWIDTH'b0000001000011010,
+                `W_DATA_BITWIDTH'b0000000001100000,
+                `W_DATA_BITWIDTH'b1111111111111011,
+                `W_DATA_BITWIDTH'b1111111100111100,
+                `W_DATA_BITWIDTH'b1111111111100111,
+                `W_DATA_BITWIDTH'b0000000100001111,
+                `W_DATA_BITWIDTH'b1111111010110101,
+                `W_DATA_BITWIDTH'b1111111101010010,
+                `W_DATA_BITWIDTH'b1111111101011011,
+                `W_DATA_BITWIDTH'b0000000000100101,
+                `W_DATA_BITWIDTH'b1111111100101001,
+                `W_DATA_BITWIDTH'b1111111011111100,
+                `W_DATA_BITWIDTH'b1111111111100110,
+                `W_DATA_BITWIDTH'b0000000000101010,
+                `W_DATA_BITWIDTH'b1111111111111100,
+                `W_DATA_BITWIDTH'b1111111111011011,
+                `W_DATA_BITWIDTH'b1111111111100100,
+                `W_DATA_BITWIDTH'b1111111111100010,
+                `W_DATA_BITWIDTH'b0000000001101001,
+                `W_DATA_BITWIDTH'b0000000001111001,
+                `W_DATA_BITWIDTH'b0000000011001111,
+                `W_DATA_BITWIDTH'b0000000001001110,
+                `W_DATA_BITWIDTH'b1111111110011101,
+                `W_DATA_BITWIDTH'b1111111100001100,
+                `W_DATA_BITWIDTH'b0000000001011100,
+                `W_DATA_BITWIDTH'b0000000010100101,
+                `W_DATA_BITWIDTH'b0000000001011100,
+                `W_DATA_BITWIDTH'b1111111110111011,
+                `W_DATA_BITWIDTH'b1111111110010011,
+                `W_DATA_BITWIDTH'b1111111011100000,
+                `W_DATA_BITWIDTH'b0000000000011000,
+                `W_DATA_BITWIDTH'b0000000000011001,
+                `W_DATA_BITWIDTH'b1111111110111010,
+                `W_DATA_BITWIDTH'b1111111100101000,
+                `W_DATA_BITWIDTH'b1111111011101101,
+                `W_DATA_BITWIDTH'b1111111110010110,
+                `W_DATA_BITWIDTH'b1111111100000011,
+                `W_DATA_BITWIDTH'b1111111011000001,
+                `W_DATA_BITWIDTH'b1111111100010110,
+                `W_DATA_BITWIDTH'b1111111011110001,
+                `W_DATA_BITWIDTH'b1111111101110000,
+                `W_DATA_BITWIDTH'b1111111010011110,
+                `W_DATA_BITWIDTH'b1111111001111110,
+                `W_DATA_BITWIDTH'b1111111110011011,
+                `W_DATA_BITWIDTH'b0000000001110110,
+                `W_DATA_BITWIDTH'b0000000001100100,
+                `W_DATA_BITWIDTH'b0000000011000001,
+                `W_DATA_BITWIDTH'b1111111111000100,
+                `W_DATA_BITWIDTH'b1111111100101011,
+                `W_DATA_BITWIDTH'b1111111100001100,
+                `W_DATA_BITWIDTH'b1111111111100110,
+                `W_DATA_BITWIDTH'b0000000010101001,
+                `W_DATA_BITWIDTH'b0000000001110101,
+                `W_DATA_BITWIDTH'b0000000010101100,
+                `W_DATA_BITWIDTH'b1111111010000010,
+                `W_DATA_BITWIDTH'b1111111101001111,
+                `W_DATA_BITWIDTH'b1111111111111110,
+                `W_DATA_BITWIDTH'b1111111111010010,
+                `W_DATA_BITWIDTH'b1111111111111001,
+                `W_DATA_BITWIDTH'b1111111110000110,
+                `W_DATA_BITWIDTH'b1111111100100101,
+                `W_DATA_BITWIDTH'b1111111100000000,
+                `W_DATA_BITWIDTH'b1111111111000111,
+                `W_DATA_BITWIDTH'b1111111110101111,
+                `W_DATA_BITWIDTH'b1111111111100010,
+                `W_DATA_BITWIDTH'b0000000001101110,
+                `W_DATA_BITWIDTH'b0000000001111101,
+                `W_DATA_BITWIDTH'b0000000000100011,
+                `W_DATA_BITWIDTH'b1111111111111000,
+                `W_DATA_BITWIDTH'b0000000001100000,
+                `W_DATA_BITWIDTH'b0000000011011001,
+                `W_DATA_BITWIDTH'b0000000011011001,
+                `W_DATA_BITWIDTH'b0000000100011110,
+                `W_DATA_BITWIDTH'b1111111111111110,
+                `W_DATA_BITWIDTH'b0000000001101100,
+                `W_DATA_BITWIDTH'b0000000001000110,
+                `W_DATA_BITWIDTH'b0000000001000010,
+                `W_DATA_BITWIDTH'b1111111111110111,
+                `W_DATA_BITWIDTH'b1111111111111100,
+                `W_DATA_BITWIDTH'b1111111101101001,
+                `W_DATA_BITWIDTH'b1111111110010110,
+                `W_DATA_BITWIDTH'b1111111101001011,
+                `W_DATA_BITWIDTH'b1111111101010000,
+                `W_DATA_BITWIDTH'b0000000000101011,
+                `W_DATA_BITWIDTH'b1111111010001110,
+                `W_DATA_BITWIDTH'b1111111011100001,
+                `W_DATA_BITWIDTH'b1111111101100001,
+                `W_DATA_BITWIDTH'b0000000000111001,
+                `W_DATA_BITWIDTH'b0000000000111101,
+                `W_DATA_BITWIDTH'b0000000001001011,
+                `W_DATA_BITWIDTH'b1111111101000100,
+                `W_DATA_BITWIDTH'b1111111101000110,
+                `W_DATA_BITWIDTH'b1111111100011100,
+                `W_DATA_BITWIDTH'b0000000000101011,
+                `W_DATA_BITWIDTH'b0000000010001110,
+                `W_DATA_BITWIDTH'b0000000000100000,
+                `W_DATA_BITWIDTH'b0000000010100100,
+                `W_DATA_BITWIDTH'b0000000001101000,
+                `W_DATA_BITWIDTH'b0000000011000011,
+                `W_DATA_BITWIDTH'b0000000000101111,
+                `W_DATA_BITWIDTH'b0000000001000000,
+                `W_DATA_BITWIDTH'b0000000001001110,
+                `W_DATA_BITWIDTH'b0000000010011110,
+                `W_DATA_BITWIDTH'b0000000000110111,
+                `W_DATA_BITWIDTH'b0000000000100100,
+                `W_DATA_BITWIDTH'b0000000001000100,
+                `W_DATA_BITWIDTH'b1111111101110011,
+                `W_DATA_BITWIDTH'b1111111110000010,
+                `W_DATA_BITWIDTH'b0000000011001111,
+                `W_DATA_BITWIDTH'b0000000101000110,
+                `W_DATA_BITWIDTH'b0000000011100110,
+                `W_DATA_BITWIDTH'b0000000001101001,
+                `W_DATA_BITWIDTH'b0000000000010110,
+                `W_DATA_BITWIDTH'b1111111101000001,
+                `W_DATA_BITWIDTH'b0000000100011110,
+                `W_DATA_BITWIDTH'b0000000011101111,
+                `W_DATA_BITWIDTH'b0000000010100100,
+                `W_DATA_BITWIDTH'b0000000000101011,
+                `W_DATA_BITWIDTH'b0000000010110101,
+                `W_DATA_BITWIDTH'b0000000100001110,
+                `W_DATA_BITWIDTH'b0000000101100111,
+                `W_DATA_BITWIDTH'b0000000011110010,
+                `W_DATA_BITWIDTH'b0000000011001111,
+                `W_DATA_BITWIDTH'b0000000100101110,
+                `W_DATA_BITWIDTH'b0000000111010000,
+                `W_DATA_BITWIDTH'b0000001001111000,
+                `W_DATA_BITWIDTH'b0000000001101000,
+                `W_DATA_BITWIDTH'b0000000100011010,
+                `W_DATA_BITWIDTH'b0000000001011110,
+                `W_DATA_BITWIDTH'b0000000011000100,
+                `W_DATA_BITWIDTH'b0000000100101010,
+                `W_DATA_BITWIDTH'b0000000011010111,
+                `W_DATA_BITWIDTH'b1111111110101011,
+                `W_DATA_BITWIDTH'b0000000001100011,
+                `W_DATA_BITWIDTH'b0000000000111011,
+                `W_DATA_BITWIDTH'b1111111111110110,
+                `W_DATA_BITWIDTH'b0000000010001001,
+                `W_DATA_BITWIDTH'b0000000000011110,
+                `W_DATA_BITWIDTH'b1111111010100101,
+                `W_DATA_BITWIDTH'b1111111101011011,
+                `W_DATA_BITWIDTH'b0000000000101111,
+                `W_DATA_BITWIDTH'b0000000011000111,
+                `W_DATA_BITWIDTH'b0000000011011010,
+                `W_DATA_BITWIDTH'b0000000000001101,
+                `W_DATA_BITWIDTH'b1111111111110011,
+                `W_DATA_BITWIDTH'b1111111100101100,
+                `W_DATA_BITWIDTH'b1111111110111100,
+                `W_DATA_BITWIDTH'b0000000000110000,
+                `W_DATA_BITWIDTH'b0000000000111111,
+                `W_DATA_BITWIDTH'b1111111111111001,
+                `W_DATA_BITWIDTH'b1111111001011110,
+                `W_DATA_BITWIDTH'b1111111100010101,
+                `W_DATA_BITWIDTH'b1111111110110100,
+                `W_DATA_BITWIDTH'b0000000001000111,
+                `W_DATA_BITWIDTH'b0000000001000001,
+                `W_DATA_BITWIDTH'b0000000000001011,
+                `W_DATA_BITWIDTH'b1111111110101100,
+                `W_DATA_BITWIDTH'b1111111111110011,
+                `W_DATA_BITWIDTH'b1111111111011011,
+                `W_DATA_BITWIDTH'b0000000010001101,
+                `W_DATA_BITWIDTH'b0000000101001011,
+                `W_DATA_BITWIDTH'b1111111111110001,
+                `W_DATA_BITWIDTH'b1111111110010111,
+                `W_DATA_BITWIDTH'b1111111110011100,
+                `W_DATA_BITWIDTH'b1111111110000000,
+                `W_DATA_BITWIDTH'b1111111101100101,
+                `W_DATA_BITWIDTH'b1111111110100111,
+                `W_DATA_BITWIDTH'b0000000000011001,
+                `W_DATA_BITWIDTH'b1111111110010100,
+                `W_DATA_BITWIDTH'b1111111101110101,
+                `W_DATA_BITWIDTH'b1111111101111010,
+                `W_DATA_BITWIDTH'b1111111111001111,
+                `W_DATA_BITWIDTH'b0000000000010000,
+                `W_DATA_BITWIDTH'b0000000010111110,
+                `W_DATA_BITWIDTH'b1111111110101011,
+                `W_DATA_BITWIDTH'b1111111110100011,
+                `W_DATA_BITWIDTH'b1111111110101001,
+                `W_DATA_BITWIDTH'b0000000001000100,
+                `W_DATA_BITWIDTH'b0000000010111000,
+                `W_DATA_BITWIDTH'b0000000011111011,
+                `W_DATA_BITWIDTH'b0000000000011111,
+                `W_DATA_BITWIDTH'b0000000001010111,
+                `W_DATA_BITWIDTH'b0000000001001110,
+                `W_DATA_BITWIDTH'b0000000001011011,
+                `W_DATA_BITWIDTH'b0000000001111000,
+                `W_DATA_BITWIDTH'b1111111111001111,
+                `W_DATA_BITWIDTH'b0000000000011110,
+                `W_DATA_BITWIDTH'b1111111100110111,
+                `W_DATA_BITWIDTH'b1111111110011100,
+                `W_DATA_BITWIDTH'b1111111101000110,
+                `W_DATA_BITWIDTH'b1111111111010110,
+                `W_DATA_BITWIDTH'b1111111001000000,
+                `W_DATA_BITWIDTH'b1111111110101010,
+                `W_DATA_BITWIDTH'b0000000001010000,
+                `W_DATA_BITWIDTH'b0000000010001111,
+                `W_DATA_BITWIDTH'b0000000000100010,
+                `W_DATA_BITWIDTH'b1111111011011111,
+                `W_DATA_BITWIDTH'b1111111100101000,
+                `W_DATA_BITWIDTH'b0000000000010010,
+                `W_DATA_BITWIDTH'b1111111110011101,
+                `W_DATA_BITWIDTH'b0000000000101110,
+                `W_DATA_BITWIDTH'b1111111110101000,
+                `W_DATA_BITWIDTH'b1111111100100000,
+                `W_DATA_BITWIDTH'b1111111001110101,
+                `W_DATA_BITWIDTH'b0000000010111000,
+                `W_DATA_BITWIDTH'b0000000000110101,
+                `W_DATA_BITWIDTH'b0000000010100110,
+                `W_DATA_BITWIDTH'b0000000001001101,
+                `W_DATA_BITWIDTH'b0000000000011010,
+                `W_DATA_BITWIDTH'b0000000000000011,
+                `W_DATA_BITWIDTH'b0000000100111100,
+                `W_DATA_BITWIDTH'b0000000011000010,
+                `W_DATA_BITWIDTH'b0000000011110111,
+                `W_DATA_BITWIDTH'b0000000011011111,
+                `W_DATA_BITWIDTH'b0000000010110110,
+                `W_DATA_BITWIDTH'b1111111101011101,
+                `W_DATA_BITWIDTH'b0000000111010010,
+                `W_DATA_BITWIDTH'b1111111111100011,
+                `W_DATA_BITWIDTH'b0000000000101110,
+                `W_DATA_BITWIDTH'b0000000010010100,
+                `W_DATA_BITWIDTH'b0000000011111101,
+                `W_DATA_BITWIDTH'b1111111111111000,
+                `W_DATA_BITWIDTH'b0000000001100110,
+                `W_DATA_BITWIDTH'b0000000000001101,
+                `W_DATA_BITWIDTH'b0000000000100001,
+                `W_DATA_BITWIDTH'b0000000000111001,
+                `W_DATA_BITWIDTH'b0000000001100001,
+                `W_DATA_BITWIDTH'b0000000000111001,
+                `W_DATA_BITWIDTH'b0000000010101001,
+                `W_DATA_BITWIDTH'b0000000010100110,
+                `W_DATA_BITWIDTH'b0000000000100011,
+                `W_DATA_BITWIDTH'b0000000011011010,
+                `W_DATA_BITWIDTH'b0000000110000000,
+                `W_DATA_BITWIDTH'b0000000111110101,
+                `W_DATA_BITWIDTH'b0000000011000110,
+                `W_DATA_BITWIDTH'b0000000001011011,
+                `W_DATA_BITWIDTH'b1111111111110110,
+                `W_DATA_BITWIDTH'b1111111111110101,
+                `W_DATA_BITWIDTH'b0000000010100010,
+                `W_DATA_BITWIDTH'b0000000010111010,
+                `W_DATA_BITWIDTH'b0000000000101100,
+                `W_DATA_BITWIDTH'b0000000000100001,
+                `W_DATA_BITWIDTH'b1111111101011101,
+                `W_DATA_BITWIDTH'b1111111101001100,
+                `W_DATA_BITWIDTH'b0000000000000011,
+                `W_DATA_BITWIDTH'b0000000010000001,
+                `W_DATA_BITWIDTH'b0000000000101101,
+                `W_DATA_BITWIDTH'b1111111110100010,
+                `W_DATA_BITWIDTH'b1111111101001000,
+                `W_DATA_BITWIDTH'b1111111101010001,
+                `W_DATA_BITWIDTH'b1111111100010011,
+                `W_DATA_BITWIDTH'b1111111110001101,
+                `W_DATA_BITWIDTH'b1111111101110000,
+                `W_DATA_BITWIDTH'b0000000010111110,
+                `W_DATA_BITWIDTH'b0000000010010100,
+                `W_DATA_BITWIDTH'b1111111110101101,
+                `W_DATA_BITWIDTH'b1111111011101011,
+                `W_DATA_BITWIDTH'b1111111111010000,
+                `W_DATA_BITWIDTH'b1111111010100001,
+                `W_DATA_BITWIDTH'b1111111110011110,
+                `W_DATA_BITWIDTH'b1111111110110011,
+                `W_DATA_BITWIDTH'b1111111101011101,
+                `W_DATA_BITWIDTH'b1111111111010011,
+                `W_DATA_BITWIDTH'b1111111101011100,
+                `W_DATA_BITWIDTH'b0000000101111010,
+                `W_DATA_BITWIDTH'b0000000010001010,
+                `W_DATA_BITWIDTH'b0000000001001101,
+                `W_DATA_BITWIDTH'b0000000000100111,
+                `W_DATA_BITWIDTH'b0000000001000100,
+                `W_DATA_BITWIDTH'b0000000010101110,
+                `W_DATA_BITWIDTH'b1111111110101011,
+                `W_DATA_BITWIDTH'b0000000001111111,
+                `W_DATA_BITWIDTH'b0000000010100111,
+                `W_DATA_BITWIDTH'b0000000010110001,
+                `W_DATA_BITWIDTH'b0000000010011010,
+                `W_DATA_BITWIDTH'b1111111101010100,
+                `W_DATA_BITWIDTH'b1111111110110100,
+                `W_DATA_BITWIDTH'b1111111110110001,
+                `W_DATA_BITWIDTH'b1111111111001111,
+                `W_DATA_BITWIDTH'b1111111111100001,
+                `W_DATA_BITWIDTH'b1111111111010010,
+                `W_DATA_BITWIDTH'b1111111110010100,
+                `W_DATA_BITWIDTH'b1111111101100110,
+                `W_DATA_BITWIDTH'b1111111110010001,
+                `W_DATA_BITWIDTH'b1111111101000101,
+                `W_DATA_BITWIDTH'b1111111011100001,
+                `W_DATA_BITWIDTH'b1111111100011000,
+                `W_DATA_BITWIDTH'b1111111111100011,
+                `W_DATA_BITWIDTH'b1111111000100110,
+                `W_DATA_BITWIDTH'b1111111110000001,
+                `W_DATA_BITWIDTH'b0000000011000000,
+                `W_DATA_BITWIDTH'b0000000010001001,
+                `W_DATA_BITWIDTH'b0000000001100010,
+                `W_DATA_BITWIDTH'b1111111001111001,
+                `W_DATA_BITWIDTH'b0000000111011011,
+                `W_DATA_BITWIDTH'b0000000010011010,
+                `W_DATA_BITWIDTH'b0000000000010111,
+                `W_DATA_BITWIDTH'b0000000001110101,
+                `W_DATA_BITWIDTH'b0000000011000111,
+                `W_DATA_BITWIDTH'b0000000100000100,
+                `W_DATA_BITWIDTH'b0000000001001001,
+                `W_DATA_BITWIDTH'b1111111101100111,
+                `W_DATA_BITWIDTH'b1111111101011010,
+                `W_DATA_BITWIDTH'b1111111101110010,
+                `W_DATA_BITWIDTH'b1111111101111101,
+                `W_DATA_BITWIDTH'b0000000010110001,
+                `W_DATA_BITWIDTH'b1111111110000000,
+                `W_DATA_BITWIDTH'b0000000000011000,
+                `W_DATA_BITWIDTH'b1111111111001100,
+                `W_DATA_BITWIDTH'b1111111111000011,
+                `W_DATA_BITWIDTH'b0000000000111101,
+                `W_DATA_BITWIDTH'b0000000100010110,
+                `W_DATA_BITWIDTH'b1111111100100000,
+                `W_DATA_BITWIDTH'b1111111110100111,
+                `W_DATA_BITWIDTH'b0000000000000111,
+                `W_DATA_BITWIDTH'b1111111111101101,
+                `W_DATA_BITWIDTH'b0000000001001011,
+                `W_DATA_BITWIDTH'b0000000100100000,
+                `W_DATA_BITWIDTH'b1111111101000100,
+                `W_DATA_BITWIDTH'b1111111110011010,
+                `W_DATA_BITWIDTH'b0000000001111111,
+                `W_DATA_BITWIDTH'b0000000100011101,
+                `W_DATA_BITWIDTH'b0000000010110011,
+                `W_DATA_BITWIDTH'b0000000001000110,
+                `W_DATA_BITWIDTH'b0000000101010011,
+                `W_DATA_BITWIDTH'b0000000011010101,
+                `W_DATA_BITWIDTH'b0000000100001100,
+                `W_DATA_BITWIDTH'b0000000011100001,
+                `W_DATA_BITWIDTH'b0000000010011011,
+                `W_DATA_BITWIDTH'b0000000110100011,
+                `W_DATA_BITWIDTH'b0000000011010011,
+                `W_DATA_BITWIDTH'b0000000000001000,
+                `W_DATA_BITWIDTH'b0000000000110010,
+                `W_DATA_BITWIDTH'b1111111100111100,
+                `W_DATA_BITWIDTH'b1111111011010011,
+                `W_DATA_BITWIDTH'b1111111110110101,
+                `W_DATA_BITWIDTH'b0000000000010011,
+                `W_DATA_BITWIDTH'b0000000001000011,
+                `W_DATA_BITWIDTH'b1111111111111000,
+                `W_DATA_BITWIDTH'b1111111111000101,
+                `W_DATA_BITWIDTH'b1111111100111100,
+                `W_DATA_BITWIDTH'b1111111111010001,
+                `W_DATA_BITWIDTH'b0000001000000111,
+                `W_DATA_BITWIDTH'b0000000010001111,
+                `W_DATA_BITWIDTH'b0000000000110101,
+                `W_DATA_BITWIDTH'b1111111111001000,
+                `W_DATA_BITWIDTH'b1111111111010101,
+                `W_DATA_BITWIDTH'b0000000011111110,
+                `W_DATA_BITWIDTH'b0000000011010001,
+                `W_DATA_BITWIDTH'b0000000001110011,
+                `W_DATA_BITWIDTH'b0000000011000110,
+                `W_DATA_BITWIDTH'b0000000000101111,
+                `W_DATA_BITWIDTH'b1111111111110100,
+                `W_DATA_BITWIDTH'b1111111100100000,
+                `W_DATA_BITWIDTH'b1111111111001000,
+                `W_DATA_BITWIDTH'b0000000000100100,
+                `W_DATA_BITWIDTH'b1111111111010100,
+                `W_DATA_BITWIDTH'b1111111111110101,
+                `W_DATA_BITWIDTH'b1111111110000100,
+                `W_DATA_BITWIDTH'b1111111111001101,
+                `W_DATA_BITWIDTH'b1111111101010110,
+                `W_DATA_BITWIDTH'b1111111111110100,
+                `W_DATA_BITWIDTH'b1111111111011001,
+                `W_DATA_BITWIDTH'b1111111111101001,
+                `W_DATA_BITWIDTH'b1111111111110100,
+                `W_DATA_BITWIDTH'b0000000011000011,
+                `W_DATA_BITWIDTH'b0000000010101110,
+                `W_DATA_BITWIDTH'b0000000010101111,
+                `W_DATA_BITWIDTH'b0000000011100011,
+                `W_DATA_BITWIDTH'b0000000010111010,
+                `W_DATA_BITWIDTH'b0000000011000100,
+                `W_DATA_BITWIDTH'b1111111111011010,
+                `W_DATA_BITWIDTH'b0000000110011110,
+                `W_DATA_BITWIDTH'b0000000011111100,
+                `W_DATA_BITWIDTH'b0000000010000011,
+                `W_DATA_BITWIDTH'b0000000000001101,
+                `W_DATA_BITWIDTH'b1111111110111111,
+                `W_DATA_BITWIDTH'b1111111101011110,
+                `W_DATA_BITWIDTH'b0000000011100111,
+                `W_DATA_BITWIDTH'b0000000100011011,
+                `W_DATA_BITWIDTH'b0000000010111100,
+                `W_DATA_BITWIDTH'b1111111111100011,
+                `W_DATA_BITWIDTH'b1111111101110111,
+                `W_DATA_BITWIDTH'b1111111111011000,
+                `W_DATA_BITWIDTH'b1111111111001011,
+                `W_DATA_BITWIDTH'b1111111110111101,
+                `W_DATA_BITWIDTH'b1111111111010010,
+                `W_DATA_BITWIDTH'b1111111110110010,
+                `W_DATA_BITWIDTH'b1111111110000110,
+                `W_DATA_BITWIDTH'b1111111101110010,
+                `W_DATA_BITWIDTH'b1111111110101100,
+                `W_DATA_BITWIDTH'b1111111110011001,
+                `W_DATA_BITWIDTH'b1111111100101101,
+                `W_DATA_BITWIDTH'b1111111111101110,
+                `W_DATA_BITWIDTH'b0000000000110101,
+                `W_DATA_BITWIDTH'b0000000001111111,
+                `W_DATA_BITWIDTH'b1111111010011100,
+                `W_DATA_BITWIDTH'b1111111011100001,
+                `W_DATA_BITWIDTH'b1111111011100001,
+                `W_DATA_BITWIDTH'b1111111101011011,
+                `W_DATA_BITWIDTH'b1111111111100000,
+                `W_DATA_BITWIDTH'b0000000010001001,
+                `W_DATA_BITWIDTH'b1111111101001000,
+                `W_DATA_BITWIDTH'b1111111011011010,
+                `W_DATA_BITWIDTH'b1111111110001000,
+                `W_DATA_BITWIDTH'b1111111101110100,
+                `W_DATA_BITWIDTH'b1111111100010110,
+                `W_DATA_BITWIDTH'b1111111110110010,
+                `W_DATA_BITWIDTH'b1111111000111100,
+                `W_DATA_BITWIDTH'b1111111001110010,
+                `W_DATA_BITWIDTH'b1111111101111000,
+                `W_DATA_BITWIDTH'b1111111110010000,
+                `W_DATA_BITWIDTH'b1111111010011010,
+                `W_DATA_BITWIDTH'b1111110101100100,
+                `W_DATA_BITWIDTH'b1111111110001101,
+                `W_DATA_BITWIDTH'b1111111011011001,
+                `W_DATA_BITWIDTH'b1111111100011010,
+                `W_DATA_BITWIDTH'b1111111100010001,
+                `W_DATA_BITWIDTH'b1111111100000010,
+                `W_DATA_BITWIDTH'b1111111101010010,
+                `W_DATA_BITWIDTH'b0000000001011110,
+                `W_DATA_BITWIDTH'b1111111100101101,
+                `W_DATA_BITWIDTH'b1111111110101111,
+                `W_DATA_BITWIDTH'b1111111101001010,
+                `W_DATA_BITWIDTH'b1111111101111001,
+                `W_DATA_BITWIDTH'b1111111111010010,
+                `W_DATA_BITWIDTH'b0000000011001111,
+                `W_DATA_BITWIDTH'b0000000001011011,
+                `W_DATA_BITWIDTH'b1111111110010010,
+                `W_DATA_BITWIDTH'b1111111110010101,
+                `W_DATA_BITWIDTH'b1111111111011000,
+                `W_DATA_BITWIDTH'b0000000000111110,
+                `W_DATA_BITWIDTH'b0000000001101110,
+                `W_DATA_BITWIDTH'b0000000001000110,
+                `W_DATA_BITWIDTH'b0000000000001100,
+                `W_DATA_BITWIDTH'b1111111111110110,
+                `W_DATA_BITWIDTH'b0000000000011011,
+                `W_DATA_BITWIDTH'b1111111111110001
+            };
+
+        // fc_data
+
+
         // ----- State ----------
             localparam S_IDLE           = 0;
             localparam S_CAMERA         = 1;
@@ -4546,6 +5134,7 @@ module Top(
 
     // ========================== Output Logic ============================================
         logic  [3:0] o_random_out_n;
+        logic  [3:0] o_random_out_2_n;
 
     // ========================== Logic (Wire) =============================================
         // ----------------------- For PE ------- unfinished------------------------
@@ -4570,7 +5159,7 @@ module Top(
 
             // Output
             logic                                  o_finish_PE [0:`PE_ROW-1][0:`PE_COL-1];
-            logic signed [`IA_DATA_BITWIDTH-1:0]   o_OA        [0:`PE_ROW-1][0:`PE_COL-1][0:`IA_ROW*`IA_CHANNEL-1];
+            logic signed [`IA_DATA_BITWIDTH-1:0]   o_OA        [0:`PE_ROW-1][0:`PE_COL-1][0:3*`IA_CHANNEL-1];
             
         // ----------------------- Else ------------------------
             logic                                  o_finish_CAMERA;
@@ -4579,19 +5168,28 @@ module Top(
     // ========================== Logic (Reg) =============================
         // For PE
         logic                                   i_start_PEs, i_start_PEs_n;
-        logic        [$clog2(`IA_CHANNEL):0]  ia_iters    [0:`IA_ROW-1][0:`IA_COL-1],                  ia_iters_n    [0:`IA_ROW-1][0:`IA_COL-1];
-        logic        [$clog2(`IA_CHANNEL):0]  ia_len      [0:`IA_ROW-1][0:`IA_COL-1],                  ia_len_n      [0:`IA_ROW-1][0:`IA_COL-1];
+        logic        [$clog2(`IA_CHANNEL):0]    ia_iters    [0:`IA_ROW-1][0:`IA_COL-1],                  ia_iters_n    [0:`IA_ROW-1][0:`IA_COL-1];
+        logic        [$clog2(`IA_CHANNEL):0]    ia_len      [0:`IA_ROW-1][0:`IA_COL-1],                  ia_len_n      [0:`IA_ROW-1][0:`IA_COL-1];
         // For OA
         logic signed [`IA_DATA_BITWIDTH-1:0]    oa_buffer   [0:`IA_ROW-1][0:`IA_COL-1][0:`IA_CHANNEL-1], oa_buffer_n   [0:`IA_ROW-1][0:`IA_COL-1][0:`IA_CHANNEL-1];
         logic signed [`IA_DATA_BITWIDTH-1:0]    oa_reducer  [0:`IA_ROW+`IA_COL-2][0:2][0:`IA_CHANNEL-1], oa_reducer_n  [0:`IA_ROW+`IA_COL-2][0:2][0:`IA_CHANNEL-1];
         logic signed [`IA_DATA_BITWIDTH-1:0]    ia_data     [0:`IA_ROW-1][0:`IA_COL-1][0:`IA_CHANNEL-1], ia_data_n     [0:`IA_ROW-1][0:`IA_COL-1][0:`IA_CHANNEL-1];
         logic        [`IA_C_BITWIDTH-1:0]       ia_c_idx    [0:`IA_ROW-1][0:`IA_COL-1][0:`IA_CHANNEL-1], ia_c_idx_n    [0:`IA_ROW-1][0:`IA_COL-1][0:`IA_CHANNEL-1];
         logic        [4:0]                      state, state_n;
-        logic        [$clog2(`IA_ROW) :0]      Hi, Hi_n,                  h, h_n;
-        logic        [$clog2(`IA_COL) :0]      Wi, Wi_n,                  w_start_max, w_start_max_n,      w_start, w_start_n;        
-        logic        [$clog2(`IA_CHANNEL):0]  Co, Co_n;
+        logic        [$clog2(`IA_ROW) :0]       Hi, Hi_n,                  h, h_n;
+        logic        [$clog2(`IA_COL) :0]       Wi, Wi_n,                  w_start_max, w_start_max_n,      w_start, w_start_n;        
+        logic        [$clog2(`IA_CHANNEL):0]    Co, Co_n;
+        logic        [2:0]                      mp_counter, mp_counter_n;
 
-        // Maxpool
+
+        logic        [$clog2(`IA_CHANNEL):0]    cp_counter  [0:`IA_ROW-1][0:`IA_COL-1],                  cp_counter_n  [0:`IA_ROW-1][0:`IA_COL-1];
+        logic        [$clog2(`IA_CHANNEL):0]    ch_count, ch_count_n;  
+
+        logic        [15:0]                      fc_counter, fc_counter_n;
+        
+
+        logic        [`IA_DATA_BITWIDTH-1:0]    fc_arr[0:287], fc_arr_n[0:287]; 
+        logic        [63:0]                     result, result_n;
 
 
     // ========================== PE Arrays (7 x 3) === unfinished ==========================
@@ -4621,7 +5219,7 @@ module Top(
 
                         // Output
                         .o_finish       (o_finish_PE[gv_row][gv_col]),
-                        .o_OA           (o_OA[gv_row][gv_col])
+                        .o_output_feature           (o_OA[gv_row][gv_col])
                     );
                 end
             end
@@ -4729,7 +5327,7 @@ module Top(
 
 
         task CONV;    // finish
-            i_start_PEs_n = 1;
+            i_start_PEs_n = 0;
             for (int pe_row=0; pe_row < `PE_ROW; pe_row++) begin 
                 i_ia_h      [pe_row]  =         h;
                 i_ia_w      [pe_row]  =         w_start + pe_row;
@@ -4899,12 +5497,95 @@ module Top(
         endtask 
 
         task COMPRESS;
-
+            ch_count_n = (ch_count == 7 ) ? 0 : ch_count + 1;
+            for (int r=0; r < `IA_ROW; r++) begin
+                for (int c=0; c< `IA_COL; c++) begin 
+                    if (oa_buffer   [r][c][ch_count][`IA_DATA_BITWIDTH-1]      == 0) begin // positive
+                        cp_counter_n[r][c]          = cp_counter[r][c] + 1;
+                        ia_data_n   [r][c][  cp_counter[r][c]   ] = oa_buffer   [r][c][ch_count];
+                        ia_c_idx_n  [r][c][  cp_counter[r][c]   ] = ch_count;
+                    end
+                end
+            end
         endtask
 
         task MAXPOOL;
-            // for (int r=0; r< (`IA))
 
+            mp_counter_n = (mp_counter == 3 ) ? 0 : mp_counter + 1;
+
+            case(mp_counter)
+                0: begin
+                    for (int r=0; r< `IA_ROW; r=r+2 ) begin
+                        for (int c=0; c < `IA_COL; c=c+2 ) begin
+                            for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
+                                if (oa_buffer[r][c][ch] > oa_buffer[r+1][c][ch] ) ia_data_n[r>>1][c>>1][ch] = oa_buffer[r][c][ch];
+                                else ia_data_n[r>>1][c>>1][ch] = oa_buffer[r+1][c][ch];
+                            end
+                        end
+                    end
+                end
+                1: begin
+                    for (int r=0; r< `IA_ROW; r=r+2 ) begin
+                        for (int c=0; c < `IA_COL; c=c+2 ) begin
+                            for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
+                                if (ia_data[r>>1][c>>1][ch] > oa_buffer[r][c+1][ch] ) ia_data_n[r>>1][c>>1][ch] = ia_data[r>>1][c>>1][ch];
+                                else ia_data_n[r>>1][c>>1][ch] = oa_buffer[r][c+1][ch];
+                            end
+                        end
+                    end
+                end
+                2: begin
+                    for (int r=0; r< `IA_ROW; r=r+2 ) begin
+                        for (int c=0; c < `IA_COL; c=c+2 ) begin
+                            for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
+                                if (ia_data[r>>1][c>>1][ch] > oa_buffer[r+1][c+1][ch] ) ia_data_n[r>>1][c>>1][ch] = ia_data[r>>1][c>>1][ch];
+                                else ia_data_n[r>>1][c>>1][ch] = oa_buffer[r+1][c+1][ch];
+                            end
+                        end
+                    end
+                end
+                3: begin // relu
+                    for (int r=0; r< `IA_ROW; r=r+2 ) begin
+                        for (int c=0; c < `IA_COL; c=c+2 ) begin
+                            for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
+                                if (ia_data[r>>1][c>>1][ch] > 0 ) ia_data_n[r>>1][c>>1][ch] = ia_data[r>>1][c>>1][ch];
+                                else ia_data_n[r>>1][c>>1][ch] = 0;
+                            end
+                        end
+                    end
+                end
+            endcase
+        endtask
+
+        task LINEAR;
+            fc_counter_n = (fc_counter == 2+287) ? 0 : fc_counter + 1;
+            case(fc_counter)
+                0: begin
+                    for (int r=0; r< 6; r++ ) begin
+                        for (int c=0; c < 6; c++ ) begin
+                            for (int ch=0; ch < 8; ch++ ) begin
+                                oa_buffer_n[r][c][ch]   = $signed(ia_data[r][c][ch]) * $signed(w_data_fc[ ch + c*8 + r*48]);
+                                oa_buffer_n[r+6][c][ch] = $signed(ia_data[r][c][ch]) * $signed(w_data_fc[288+ ch + c*8 + r*48]);
+                            end
+                        end
+                    end
+                end
+
+                1: begin
+                    for (int r=0; r< 6; r++ ) begin
+                        for (int c=0; c < 6; c++ ) begin
+                            for (int ch=0; ch < 8; ch++ ) begin
+                                fc_arr_n[ch + c*8 + r*48] = $signed(oa_buffer[r][c][ch]) - $signed(oa_buffer[r+6][c][ch]);
+                                
+                            end
+                        end
+                    end
+                end
+
+                default: begin
+                    result_n = $signed(result) + $signed(fc_arr[fc_counter-2]);
+                end
+            endcase
         endtask
 
     // ========================== State Control (Combinational Circuit) ========= unfinish============
@@ -4920,15 +5601,16 @@ module Top(
                 S_REDUCE_1:     state_n = S_TOOABUFFER_1;
                 S_TOOABUFFER_1: state_n = (h==Hi-1 && w_start==w_start_max-1) ? S_COMPRESS_1 : S_CONV_1;
 
-                S_COMPRESS_1:   state_n = S_PUT_W_2; // need to rethink
+                S_COMPRESS_1:   state_n = (ch_count == 7 ) ?  S_PUT_W_2 : state;   // need to rethink
+                // ch_count_n = (ch_count == 7 ) ? 0 : ch_count + 1;
 
                 S_PUT_W_2:      state_n = S_CONV_2;
                 S_CONV_2:       state_n = (o_finish_PE==PEs_FINISH)   ? S_REDUCE_2 : state; 
                 S_REDUCE_2:     state_n = S_TOOABUFFER_2;
-                S_TOOABUFFER_2:       state_n = (h==Hi-1 && w_start==w_start_max-1) ? S_MAXPOOL  : S_CONV_2;
+                S_TOOABUFFER_2: state_n = (h==Hi-1 && w_start==w_start_max-1) ? S_MAXPOOL  : S_CONV_2;
 
-                S_MAXPOOL:      state_n = S_LINEAR; // need to rethink
-                S_LINEAR:       state_n = S_OUT;    // need to rethink
+                S_MAXPOOL:      state_n = (mp_counter == 3) ? S_LINEAR : state; // need to rethink
+                S_LINEAR:       state_n = (fc_counter == 2+287) ? S_OUT    : state;    // need to rethink
                 // S_OUT:          state_n = S_CAMERA; // need to rethink
 
                 
@@ -4940,12 +5622,14 @@ module Top(
         always_comb begin 
             i_start_PEs_n  = i_start_PEs;
             o_random_out_n = o_random_out;
+            o_random_out_2_n = o_random_out_2;
             Hi_n           = Hi;
             Wi_n           = Wi;
             w_start_max_n  = w_start_max;
             h_n            = h;
             w_start_n      = w_start;
             Co_n           = Co;
+            ch_count_n     = ch_count;
 
             ia_iters_n     = ia_iters;
             ia_len_n       = ia_len;
@@ -4953,6 +5637,13 @@ module Top(
             ia_c_idx_n     = ia_c_idx;
             oa_reducer_n   = oa_reducer;
             oa_buffer_n    = oa_buffer;
+
+            mp_counter_n   = mp_counter;
+            cp_counter_n   = cp_counter; 
+
+            fc_counter_n   = fc_counter; 
+            result_n       = result;
+            fc_arr_n       =  fc_arr;
 
             case(state)
                 S_IDLE: begin
@@ -4976,7 +5667,7 @@ module Top(
 
                 S_REDUCE_1: begin
                     TOOAREDUCER();
-                    i_start_PEs_n = 0;
+                    // i_start_PEs_n = 0;
                 end
 
                 S_TOOABUFFER_1: begin // put to oa_buffer
@@ -4985,9 +5676,13 @@ module Top(
                     if (h==Hi-1) begin
                         w_start_n = (w_start == w_start_max-1) ? 0 : w_start+1;
                     end
+                    i_start_PEs_n = (h==Hi-1 && w_start==w_start_max-1) ? 0 : 1;
+
+                    ch_count_n = 0;
                 end
 
                 S_COMPRESS_1: begin // put to IA
+                    COMPRESS();
                 end
 
                 S_PUT_W_2: begin
@@ -5004,7 +5699,7 @@ module Top(
 
                 S_REDUCE_2: begin
                     TOOAREDUCER();
-                    i_start_PEs_n = 0;
+                    // i_start_PEs_n = 0;
                 end
 
                 S_TOOABUFFER_2: begin // put to oa_buffer
@@ -5013,15 +5708,25 @@ module Top(
                     if (h==Hi-1) begin
                         w_start_n = (w_start == w_start_max-1) ? 0 : w_start+1;
                     end
+
+                    
+                    i_start_PEs_n = (h==Hi-1 && w_start==w_start_max-1) ? 0 : 1 ;
+                    mp_counter_n = 0;
                 end
 
-                S_MAXPOOL: begin // from oa_buffer to ia_buffer, one cycle
+                S_MAXPOOL: begin // from oa_buffer to ia_data, one cycle
+                    MAXPOOL();
+
+                    fc_counter_n = 0;
                 end
 
-                S_LINEAR : begin
+                S_LINEAR : begin // from iadata to oa_buffer
+                    LINEAR();
                 end
 
                 S_OUT    : begin
+                    
+                    o_random_out_n = (result  < 0);
                 end
 
             endcase
@@ -5033,6 +5738,7 @@ module Top(
             if (!i_rst_n) begin
                 i_start_PEs  <= 0;
                 o_random_out <= 0;
+                o_random_out_2 <= 0;
                 state        <= S_IDLE;
                 Hi           <= 0;
                 Wi           <= 0;
@@ -5040,16 +5746,23 @@ module Top(
                 h            <= 0;
                 w_start      <= 0;
                 Co           <= 0;
+                mp_counter   <= 0;
+                ch_count     <= 0;
+                fc_counter   <= 0;
+                result       <= 0;
+                fc_arr       <= '{default:0};
+                
 
                 
 
                 for (int r=0; r < `IA_ROW; r++ ) begin
                     for (int c=0; c < `IA_COL; c++ ) begin
-                        ia_iters [r][c] <= 0;
-                        ia_len   [r][c] <= 0;
+                        ia_iters   [r][c] <= 0;
+                        ia_len     [r][c] <= 0;
+                        cp_counter [r][c] <= 0; 
                         for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
-                            ia_data  [r][c][ch] <= 0;
-                            ia_c_idx [r][c][ch] <= 0;
+                            ia_data  [r][c][ch] <= 1;
+                            ia_c_idx [r][c][ch] <= ch;
                             oa_buffer[r][c][ch] <= 0;
                         end
                     end
@@ -5068,6 +5781,7 @@ module Top(
             else begin
                 i_start_PEs  <= i_start_PEs_n;
                 o_random_out <= o_random_out_n;
+                o_random_out_2 <= o_random_out_2_n;
                 state        <= state_n;
                 Hi           <= Hi_n;
                 Wi           <= Wi_n;
@@ -5075,6 +5789,9 @@ module Top(
                 h            <= h_n;
                 w_start      <= w_start_n;
                 Co           <= Co_n;
+                mp_counter   <= mp_counter_n;
+                ch_count     <= ch_count_n;
+                result       <= result_n;
 
                 ia_iters     <= ia_iters_n;
                 ia_len       <= ia_len_n;
@@ -5082,10 +5799,10 @@ module Top(
                 ia_c_idx     <= ia_c_idx_n;
                 oa_reducer   <= oa_reducer_n;
                 oa_buffer    <= oa_buffer_n;
-                
-
+                cp_counter   <= cp_counter_n; 
+                fc_counter   <= fc_counter_n;
+                fc_arr       <= fc_arr_n;
             end
-
         end
 
 endmodule
