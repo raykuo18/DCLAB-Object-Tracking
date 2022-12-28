@@ -170,7 +170,7 @@ always_ff@(posedge i_clk or negedge i_rst_n) begin
         out_r[2]    <= 34'd2;
         addr_last_r <= 0;
         addr_diff_r <= 1'b1;
-        for(i=0; i<`Length; i=i+1) begin
+        for(i=0; i<32; i=i+1) begin
             buf_r[i] <= 36'd0;
         end
     end

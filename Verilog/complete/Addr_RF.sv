@@ -1,34 +1,30 @@
-// `define K 4
-// `define length 10
-// length -> W_C_LENGTH
-// K      -> IA_CHANNEL*3
 `include "header.h"
 
 module AddrToRF(
     input i_clk,
     input i_rst_n,
     input i_start,
-    input [6:0] i_h,
-    input [6:0] i_w,
-    input [2:0] i_s,
-    input [2:0] i_r[0:`IA_CHANNEL*3-1],
-    input [4:0] i_k[0:`IA_CHANNEL*3-1],
-    input [10:0] i_ptr[0:`IA_CHANNEL*3-1],
-    input [10:0] i_length,
+    input [$clog2(`IA_ROW):0] i_h,
+    input [$clog2(`IA_ROW):0] i_w,
+    input [1:0] i_s,
+    input [`W_R_BITWIDTH-1:0] i_r[0:`W_R_LENGTH-1],
+    input [`W_K_BITWIDTH-1:0] i_k[0:`W_R_LENGTH-1],
+    input [`W_POS_PTR_BITWIDTH-1:0] i_ptr[0:`W_R_LENGTH-1],
+    input [$clog2(`W_C_LENGTH):0] i_length,
     output o_finish,
-    output [2:0][6:0] o_RF[0:`W_C_LENGTH-1]
+    output [2:0][6:0] o_RF[0:`W_C_LENGTH]
 );
 localparam S_IDLE = 1'd0;
 localparam S_PROC = 1'd1;
 
 logic state_r, state_w;
 logic finish_r, finish_w;
-logic [10:0] counter_r, counter_w;
-logic [2:0][6:0] RF_r[0:`W_C_LENGTH-1], RF_w[0:`W_C_LENGTH-1];
+logic [`W_POS_PTR_BITWIDTH:0] counter_r, counter_w;
+logic [2:0][6:0] RF_r[0:$clog2(`W_C_LENGTH)], RF_w[0:$clog2(`W_C_LENGTH)];
 
-logic [10:0] ptr_value_r, ptr_value_w;
-logic [`IA_CHANNEL*3-1:0] ptr_idx_r, ptr_idx_w;
-logic [6:0] r_r, r_w, k_r, k_w;
+logic [`W_POS_PTR_BITWIDTH:0] ptr_value_r, ptr_value_w;
+logic [`W_R_LENGTH-1:0] ptr_idx_r, ptr_idx_w;
+logic [`W_K_BITWIDTH:0] r_r, r_w, k_r, k_w;
 
 assign o_finish = finish_w;
 assign o_RF = RF_w;
@@ -71,7 +67,7 @@ always_comb begin // finish
 end
 always_comb begin // counter
     case(state_r)
-        S_IDLE: counter_w = 11'd0;
+        S_IDLE: counter_w = 0;
         S_PROC: counter_w = counter_r + 1;
         default: counter_w = counter_r;
     endcase
@@ -83,7 +79,7 @@ always_comb begin // ptr
             ptr_idx_w = 0;
         end
         S_PROC: begin
-            ptr_value_w = (ptr_idx_r < `IA_CHANNEL*3-1) ? i_ptr[ptr_idx_r+1]: ptr_value_r;
+            ptr_value_w = (ptr_idx_r < `W_R_LENGTH-1) ? i_ptr[ptr_idx_r+1]: ptr_value_r;
             ptr_idx_w = (counter_r == ptr_value_r-1) ? ptr_idx_r +1: ptr_idx_r;
         end
         default: begin
@@ -96,8 +92,8 @@ end
 always_comb begin //r, k
     case(state_r)
         S_IDLE: begin
-            r_w = 7'd0;
-            k_w = 7'd0;
+            r_w = 0;
+            k_w = 0;
         end
         S_PROC: begin
             r_w = (counter_r <= ptr_value_r) ? i_r[ptr_idx_r]: r_r;
@@ -115,10 +111,10 @@ always_ff@(posedge i_clk or negedge i_rst_n) begin
     if(!i_rst_n) begin
         state_r     <= S_IDLE;
         finish_r    <= 1'd0;
-        counter_r   <= 11'd0;
-        r_r         <= 7'd0;
-        k_r         <= 7'd0;
-        ptr_value_r <= 11'd0;
+        counter_r   <= 0;
+        r_r         <= 0;
+        k_r         <= 0;
+        ptr_value_r <= 0;
         ptr_idx_r   <= 0;
         for(t=0; t<i_length; t=t+1) begin
             RF_r[t] <= 0;

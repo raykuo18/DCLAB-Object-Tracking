@@ -32,9 +32,7 @@ localparam S_FINISH = 2;
 
 
 // ===== Output logic ===== 
-logic                                   o_finish_n;
-logic signed [`IA_DATA_BITWIDTH-1:0]    o_OA_n         [0:`IA_ROW*`IA_CHANNEL-1];
-// logic signed [`IA_DATA_BITWIDTH-1:0]    o_OA_n        [0:`IA_ROW-1][0:`IA_CHANNEL-1];
+logic o_finish_n;
 
 
 // ===== logic ===== 

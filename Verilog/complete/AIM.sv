@@ -1,10 +1,11 @@
+`include "header.h"
 module AIM(
     input i_clk,
     input i_rst_n,
     input i_start,
     input [$clog2(`IA_CHANNEL):0] i_ite, ///////////////////////////////////// DO SUBTRACT 1, ex, run 2 iteration -> i_ite = 1
     input [`W_C_BITWIDTH-1:0] i_word[0:31], ////////////////////////////////////////weight channel idx
-    input [5:0] i_IA[0:255], //[`IA_C_BITWIDTH-1:0] i_IA  [0:`IA_CHANNEL-1]///////// 8*32 = 256
+    input [`IA_C_BITWIDTH-1:0] i_IA[0:`IA_CHANNEL-1], //[`IA_C_BITWIDTH-1:0] i_IA  [0:`IA_CHANNEL-1]///////// 8*32 = 256
     output o_finish,
     output o_valid[0:31],
     output [8:0] o_pos[0:31]
@@ -25,7 +26,7 @@ logic [8:0]     pos_r[0:31], pos_w[0:31];
 
 logic           i_encode_start;
 logic           i_encode_finish[0:31];
-logic [5:0]     IA_r[0:31], IA_w[0:31];
+logic [`IA_C_BITWIDTH-1:0]     IA_r[0:`IA_CHANNEL-1], IA_w[0:`IA_CHANNEL-1];
 
 assign i_encode_start = (state_r == S_ENCO);
 assign o_finish = finish_r;
