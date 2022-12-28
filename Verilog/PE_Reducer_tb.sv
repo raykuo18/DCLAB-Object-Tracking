@@ -1,5 +1,5 @@
 `timescale 1ns/1ns
-
+`include "header.h"
 module tb;
 	localparam          CLK = 10;
 	localparam          HCLK = CLK/2;
@@ -10,7 +10,7 @@ module tb;
 
     logic [2:0][6:0] addr[0:2];
     logic [15:0] w[0:2], ia[0:2];
-    logic [35:0] buffer[0:9];
+    logic [`IA_DATA_BITWIDTH-1:0] buffer[0:3*`IA_CHANNEL-1];
     logic finish;
     initial begin
         #35 begin
@@ -63,7 +63,7 @@ module tb;
         #10 begin
             start_cal = 1'b0;
         end
-        #30 begin
+        #50 begin
             start_cal = 1'b1;
         end
         #10 begin
