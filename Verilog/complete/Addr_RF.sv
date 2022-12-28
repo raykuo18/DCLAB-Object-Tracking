@@ -12,7 +12,7 @@ module AddrToRF(
     input [`W_POS_PTR_BITWIDTH-1:0] i_ptr[0:`W_R_LENGTH-1],
     input [$clog2(`W_C_LENGTH):0] i_length,
     output o_finish,
-    output [2:0][6:0] o_RF[0:`W_C_LENGTH]
+    output [2:0][6:0] o_RF[0:`W_C_LENGTH-1]
 );
 localparam S_IDLE = 1'd0;
 localparam S_PROC = 1'd1;
@@ -20,7 +20,7 @@ localparam S_PROC = 1'd1;
 logic state_r, state_w;
 logic finish_r, finish_w;
 logic [`W_POS_PTR_BITWIDTH:0] counter_r, counter_w;
-logic [2:0][6:0] RF_r[0:$clog2(`W_C_LENGTH)], RF_w[0:$clog2(`W_C_LENGTH)];
+logic [2:0][6:0] RF_r[0:`W_C_LENGTH-1], RF_w[0:`W_C_LENGTH-1];
 
 logic [`W_POS_PTR_BITWIDTH:0] ptr_value_r, ptr_value_w;
 logic [`W_R_LENGTH-1:0] ptr_idx_r, ptr_idx_w;

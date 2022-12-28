@@ -1,4 +1,4 @@
-// --------------------- `define for WMem ------------------------
+/*// --------------------- `define for WMem ------------------------
     `define W_DATA_BITWIDTH    16
     `define W_C_BITWIDTH       5   // log2(# Channel)
     `define W_R_BITWIDTH       2 
@@ -14,9 +14,9 @@
     `define IA_C_BITWIDTH       5   // log2(# Channel)
     `define IA_CHANNEL 8
     `define IA_ROW 16
-    `define IA_COL 16
+    `define IA_COL 16*/
 
-
+`include "header.h"
 
 
 module VPEncoder(
@@ -27,9 +27,9 @@ module VPEncoder(
     input [2:0][6:0]        i_addr_buf[0:`W_C_LENGTH-1],
     input                   i_valid_buf[0:`W_C_LENGTH-1],
     input [8:0]             i_pos_buf[0:`W_C_LENGTH-1],
-    input signed [15:0]     i_ia_data[0:`IA_CHANNEL],
-    input signed [15:0]     i_w_data[0:`W_C_LENGTH],
-    input [$clog2(`W_C_LENGTH)-1:0]  i_w_len,
+    input signed [15:0]     i_ia_data[0:`IA_CHANNEL-1],
+    input signed [15:0]     i_w_data[0:`W_C_LENGTH-1],
+    input [$clog2(`W_C_LENGTH):0]  i_w_len,
 
     //////////////// output (8) ////////////////
     // o_ready

@@ -9,8 +9,8 @@ module tb;
 	always #HCLK clk = ~clk;
 
     logic [2:0][6:0] addr[0:2];
-    logic [15:0] w[0:2], ia[0:2];
-    logic [`IA_DATA_BITWIDTH-1:0] buffer[0:3*`IA_CHANNEL-1];
+    logic signed [15:0] w[0:2], ia[0:2];
+    logic signed [`IA_DATA_BITWIDTH-1:0] buffer[0:3*`IA_CHANNEL-1];
     logic finish;
     initial begin
         #35 begin

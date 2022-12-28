@@ -1,14 +1,14 @@
 `include "header.h"
 
 module PEReducer(
-    input i_clk,
-    input i_rst_n,
-    input i_start,
-    input [2:0][6:0] i_addr[0:2],
-    input [15:0] i_w[0:2],
-    input [15:0] i_ia[0:2],
-    output [`IA_DATA_BITWIDTH-1:0] o_buf[0:3*`IA_CHANNEL-1],
-    output o_finish
+    input               i_clk,
+    input               i_rst_n,
+    input               i_start,
+    input [2:0][6:0]    i_addr[0:2],
+    input signed [15:0] i_w[0:2],
+    input signed [15:0] i_ia[0:2],
+    output signed [`IA_DATA_BITWIDTH-1:0] o_buf[0:3*`IA_CHANNEL-1],
+    output              o_finish
 );
 
 localparam S_IDLE = 2'd0;
@@ -18,7 +18,7 @@ localparam S_SLCT = 2'd2;
 logic [1:0] state_r, state_w;
 logic finish_r, finish_w;
 
-logic [`IA_DATA_BITWIDTH-1:0] buf_r[0: 3*`IA_CHANNEL-1], buf_w[0: 3*`IA_CHANNEL-1];
+logic signed [`IA_DATA_BITWIDTH-1:0] buf_r[0: 3*`IA_CHANNEL-1], buf_w[0: 3*`IA_CHANNEL-1];
 logic [3*`IA_CHANNEL-1:0] ptr_r, ptr_w;
 
 logic addr_start, comp_start;
@@ -26,7 +26,7 @@ logic [1:0] comp_code;
 logic [1:0] out_num;
 logic [33:0] ABC, C, BC, B, AB, A;
 logic proc_finish, addr_finish, comp_finish;
-logic [33:0] out_r[0:2], out_w[0:2];
+logic signed [33:0] out_r[0:2], out_w[0:2];
 
 logic [2:0][6:0] addr_last_r, addr_last_w;
 logic addr_diff_r, addr_diff_w;
@@ -291,8 +291,8 @@ module Computation(
     input i_clk,
     input i_rst_n,
     input i_start,
-    input [15:0] i_w[0:2],
-    input [15:0] i_ia[0:2],
+    input signed [15:0] i_w[0:2],
+    input signed [15:0] i_ia[0:2],
     output [33:0] o_ABC,
     output [33:0] o_C,
     output [33:0] o_BC,

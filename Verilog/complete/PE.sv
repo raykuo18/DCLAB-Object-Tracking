@@ -38,7 +38,7 @@ logic finish_r, finish_w;
 
 // Addr RF
 logic addr_to_rf_finish;
-logic [2:0][6:0] addr_buf[0:`W_C_LENGTH];
+logic [2:0][6:0] addr_buf[0:`W_C_LENGTH-1];
 
 // AIM
 logic aim_start_r, aim_start_w;
