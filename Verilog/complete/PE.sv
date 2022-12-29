@@ -100,8 +100,8 @@ VPEncoder vp_encoder(
     .i_rst_n(i_rst_n),
     .i_start(vp_enc_start),
     .i_addr_buf(addr_buf),
-    .i_valid_buf(),////////////////
-    .i_pos_buf(),////////////////
+    .i_valid_buf(valids_buf),////////////////
+    .i_pos_buf(poses_buf),////////////////
     .i_ia_data(i_ia_data),
     .i_w_data(i_w_data),
     .i_w_len(i_w_len),
