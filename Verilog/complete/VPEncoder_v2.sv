@@ -59,12 +59,12 @@ logic [1:0]         write_pos_r, write_pos_w;
 logic [4:0]         current_idx_r, current_idx_w;
 
 /////////////////// output var ///////////////////
-logic [2:0][6:0]         addr_right_buffer_r[0:2]    , addr_right_buffer_w[0:2];
-logic signed [15:0] w_data_right_buffer_r[0:2]  , w_data_right_buffer_w[0:2];
-logic signed [15:0] ia_data_right_buffer_r[0:2] , ia_data_right_buffer_w[0:2];
-logic [2:0][6:0]         addr_left_buffer_r[0:2]     , addr_left_buffer_w[0:2];
-logic signed [15:0] w_data_left_buffer_r[0:2]   , w_data_left_buffer_w[0:2];
-logic signed [15:0] ia_data_left_buffer_r[0:2]  , ia_data_left_buffer_w[0:2];
+logic [2:0][6:0]        addr_right_buffer_r[0:2], addr_right_buffer_w[0:2];
+logic signed [15:0]     w_data_right_buffer_r[0:2], w_data_right_buffer_w[0:2];
+logic signed [15:0]     ia_data_right_buffer_r[0:2], ia_data_right_buffer_w[0:2];
+logic [2:0][6:0]        addr_left_buffer_r[0:2], addr_left_buffer_w[0:2];
+logic signed [15:0]     w_data_left_buffer_r[0:2], w_data_left_buffer_w[0:2];
+logic signed [15:0]     ia_data_left_buffer_r[0:2], ia_data_left_buffer_w[0:2];
 
 /*integer i;
 always_comb begin
@@ -112,7 +112,7 @@ always_comb begin
         S_IDLE: begin
             if (i_start) begin
                 state_w = S_WRITE_RIGHT;
-                if (i_valid_buf[current_idx_r] == 0 && i_valid_buf[current_idx_r+1] == 0 && i_valid_buf[current_idx_r+2] == 0) begin
+                if (i_valid_buf[current_idx_r] == 0 && i_valid_buf[(current_idx_r+1)] == 0 && i_valid_buf[(current_idx_r+2)] == 0) begin
                     current_idx_w = current_idx_r + 3;
                 end
                 else begin
@@ -171,7 +171,7 @@ always_comb begin
                 // right_ready_w = 1; // change in different state
                 state_w = S_IDLE;
             end else begin
-                if (i_valid_buf[current_idx_r] == 0 && i_valid_buf[current_idx_r+1] == 0 && i_valid_buf[current_idx_r+2] == 0) begin
+                if (i_valid_buf[current_idx_r] == 0 && i_valid_buf[(current_idx_r+1)] == 0 && i_valid_buf[(current_idx_r+2)] == 0) begin
                     current_idx_w = current_idx_r + 3;
                 end
                 else begin
@@ -382,6 +382,7 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
         current_idx_r   <= current_idx_w;
         left_ready_r    <= left_ready_w;
         right_ready_r   <= right_ready_w;
+
         addr_right_buffer_r      <= addr_right_buffer_w;
         w_data_right_buffer_r    <= w_data_right_buffer_w;
         ia_data_right_buffer_r   <= ia_data_right_buffer_w;
