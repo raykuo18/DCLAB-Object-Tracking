@@ -29,8 +29,8 @@ module tb;
     logic signed    [`IA_DATA_BITWIDTH-1:0]    out        [0:3*`IA_CHANNEL-1];
 
     // ===== assign value =====
-    assign ia_h = 3;
-    assign ia_w = 3;
+    assign ia_h = 4;
+    assign ia_w = 4;
     assign ia_ite = 2;
     assign ia_len = 2;
     assign w_ite = 2;
@@ -48,8 +48,9 @@ module tb;
          w_c[j] = j+5;
     end
     for(p=0; p<`W_R_LENGTH; p=p+1) begin
-         w_data[p] = p;
-         w_c[p] = p+2;
+         r[p] = p[1:0];
+         k[p] = p>>2;
+         ptr[p] = p+3;
     end
     end
 

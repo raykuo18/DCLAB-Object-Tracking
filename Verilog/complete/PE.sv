@@ -150,6 +150,7 @@ always_comb begin
         end
 
         S_PREPROCESS: begin
+            //aim_start_w = 0;
             if (addr_to_rf_finish == 1) begin
                 addrRF_finished_w = 1;
             end
@@ -159,10 +160,12 @@ always_comb begin
                 vp_enc_start = 1;
                 aim_start_w = 0;
             end
+            //else begin
             for (int i=0; i<32; i=i+1) begin
                 aim_w_c_input[i] = i_w_c_idx[i + w_iter_count_r * 32];
             end
             w_iter_count_w = w_iter_count_r + 1;
+            //end
         end
 
         S_ENC_MAC: begin
