@@ -22,8 +22,8 @@
 module VPEncoder(
     input                   i_clk,
     input                   i_rst_n,
-    //////////////// input (7) ////////////////
     input                   i_start,
+    //////////////// input (7) ////////////////
     input [2:0][6:0]        i_addr_buf[0:`W_C_LENGTH-1],
     input                   i_valid_buf[0:`W_C_LENGTH-1],
     input [8:0]             i_pos_buf[0:`W_C_LENGTH-1],
@@ -83,6 +83,7 @@ assign o_ia_data_right_buffer    = ia_data_right_buffer_r;
 assign o_addr_left_buffer        = addr_left_buffer_r;
 assign o_w_data_left_buffer      = w_data_left_buffer_r;
 assign o_ia_data_left_buffer     = ia_data_left_buffer_r;
+assign o_finish                  = finish_r;
 
 logic left_ready_r, left_ready_w;
 logic right_ready_r, right_ready_w;
@@ -146,6 +147,7 @@ always_comb begin
             end else begin
                 right_ready_w = 0;
                 left_ready_w = 0;
+                finish_w = 0;
             end
         end
 
@@ -169,6 +171,7 @@ always_comb begin
                 current_idx_w = 0;
                 left_ready_w = 0; // change in different state
                 // right_ready_w = 1; // change in different state
+                finish_w = 1;
                 state_w = S_IDLE;
             end else begin
                 if (i_valid_buf[current_idx_r] == 0 && i_valid_buf[(current_idx_r+1)] == 0 && i_valid_buf[(current_idx_r+2)] == 0) begin
@@ -238,6 +241,7 @@ always_comb begin
                 current_idx_w = 0;
                 // left_ready_w = 0; // change in different state
                 right_ready_w = 0; // change in different state
+                finish_w = 1;
                 state_w = S_IDLE;
             end else begin
                 if (i_valid_buf[current_idx_r] == 0 && i_valid_buf[current_idx_r+1] == 0 && i_valid_buf[current_idx_r+2] == 0) begin
@@ -299,57 +303,10 @@ always_comb begin
             addr_left_buffer_w          = addr_left_buffer_r;
             w_data_left_buffer_w        = w_data_left_buffer_r;
             ia_data_left_buffer_w       = ia_data_left_buffer_r;
+
         end
     endcase
 end
-
-// always_comb begin
-//     state_w         = state_r;
-//     case(state_r)
-//         S_IDLE: begin
-//             $display("--------- State: S_IDLE");
-//             if (i_start) begin
-//                 $display("!!!!!!!! i_start !!!!!!!!");
-//                 state_w = S_WRITE_RIGHT;
-//             end
-//         end
-
-//         S_WRITE_RIGHT: begin
-//             $display("--------- State: S_WRITE_RIGHT");
-//             if (current_idx_r >= i_w_len) begin
-//                 state_w = S_IDLE;
-//             end else begin
-//                 if (i_valid_buf[current_idx_r] == 0 && i_valid_buf[current_idx_r+1] == 0 && i_valid_buf[current_idx_r+2] == 0) begin
-//                 end
-//                 else begin
-//                     // Check ouptut state;
-//                     if (write_pos_r == 2) begin // finish a buffer
-//                         state_w = S_WRITE_LEFT;
-//                     end
-//                 end
-//             end        
-//         end
-
-//         S_WRITE_LEFT: begin
-//             $display("--------- State: S_WRITE_LEFT");
-//             if (current_idx_r >= i_w_len) begin
-//                 state_w = S_IDLE;
-//             end else begin
-//                 if (i_valid_buf[current_idx_r] == 0 && i_valid_buf[current_idx_r+1] == 0 && i_valid_buf[current_idx_r+2] == 0) begin
-//                 end
-//                 else begin
-//                     if (write_pos_r == 2) begin // finish a buffer
-//                         state_w = S_WRITE_RIGHT;
-//                     end
-//                 end
-//             end   
-//         end
-
-//         default: begin
-//             $display("--------- State: default");
-//         end
-//     endcase
-// end
 
 // ===== Sequential Blocks =====
 integer p, q;
