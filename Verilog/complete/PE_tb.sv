@@ -31,27 +31,21 @@ module tb;
     // ===== assign value =====
     assign ia_h = 4;
     assign ia_w = 4;
-    assign ia_ite = 2;
-    assign ia_len = 2;
-    assign w_ite = 2;
-    assign w_len = 4;
+    assign ia_ite = 1;
+    assign ia_len = 4;
+    assign w_ite = 0;
+    assign w_len = 12;
     assign s = 1;
 
     integer i, j, p;
     always_comb begin
-    for(i=0; i<`IA_CHANNEL; i=i+1) begin
-         ia_data[i] = i+1;
-         ia_c[i] = i+2;
-    end
-    for(j=0; j<`W_C_LENGTH; j=j+1) begin
-         w_data[j] = j+4;
-         w_c[j] = j+5;
-    end
-    for(p=0; p<`W_R_LENGTH; p=p+1) begin
-         r[p] = p[1:0];
-         k[p] = p>>2;
-         ptr[p] = p+3;
-    end
+        ia_data[0:3] = '{16'd2, 16'd3, 16'd5, 16'd6};
+        ia_c[0:3] = '{5'd2, 5'd3, 5'd5, 5'd6};
+        w_data[0:11] = '{16'd0, 16'd1, 16'd3, 16'd5, 16'd2, 16'd5, 16'd6, 16'd1, 16'd2, 16'd3, 16'd4, 16'd7};
+        w_c[0:11] = '{5'd0, 5'd1, 5'd3, 5'd5, 5'd2, 5'd5, 5'd6, 5'd1, 5'd2, 5'd3, 5'd4, 5'd7};
+        ptr[0:7] = '{11'd0, 11'd1, 11'd4, 11'd5, 11'd6, 11'd7, 11'd9, 11'd11};
+        r[0:7] = '{2'd0, 2'd2, 2'd0, 2'd1, 2'd2, 2'd0, 2'd1, 2'd2};
+        k[0:7] = '{5'd0, 5'd0, 5'd1, 5'd1, 5'd1, 5'd2, 5'd2, 5'd2};
     end
 
 
@@ -59,12 +53,14 @@ module tb;
 		.i_clk(clk),
 		.i_rst_n(rst),
 		.i_start(start_cal),
+        // IA bundle
         .i_ia_h(ia_h),
         .i_ia_w(ia_w),
         .i_ia_data(ia_data),
         .i_ia_c_idx(ia_c),
         .i_ia_iters(ia_ite),
         .i_ia_len(ia_len),
+        // W bundle
         .i_w_s(s),
         .i_w_data(w_data),
         .i_w_c_idx(w_c),
@@ -73,6 +69,7 @@ module tb;
         .i_k_idx(k),
         .i_w_iters(w_ite),
         .i_w_len(w_len),
+        // Output
         .o_finish(finish),
         .o_output_feature(out)
 	);

@@ -1,4 +1,23 @@
+/*// --------------------- `define for WMem ------------------------
+    `define W_DATA_BITWIDTH    16
+    `define W_C_BITWIDTH       5   // log2(# Channel)
+    `define W_R_BITWIDTH       2 
+    `define W_K_BITWIDTH       5 
+    `define W_POS_PTR_BITWIDTH 11 
+
+    `define W_C_LENGTH        474 // max of C_LENGTH
+    `define W_R_LENGTH        48  // max of R_LENGTH
+
+
+// --------------------- `define for IA ------------------------
+    `define IA_DATA_BITWIDTH    16
+    `define IA_C_BITWIDTH       5   // log2(# Channel)
+    `define IA_CHANNEL 8
+    `define IA_ROW 16
+    `define IA_COL 16*/
+
 `include "header.h"
+
 
 module VPEncoder(
     input                   i_clk,
@@ -34,21 +53,22 @@ localparam          S_IDLE = 0;
 localparam          S_WRITE_RIGHT = 1;
 localparam          S_WRITE_LEFT = 2;
 
+logic               finish_r, finish_w;
 logic [1:0]         state_r, state_w;
 logic [1:0]         write_pos_r, write_pos_w;
 logic [4:0]         current_idx_r, current_idx_w;
 
 /////////////////// output var ///////////////////
-logic [2:0][6:0]        addr_right_buffer_r[0:2]    , addr_right_buffer_w[0:2];
-logic signed [15:0]     w_data_right_buffer_r[0:2]  , w_data_right_buffer_w[0:2];
-logic signed [15:0]     ia_data_right_buffer_r[0:2] , ia_data_right_buffer_w[0:2];
-logic [2:0][6:0]        addr_left_buffer_r[0:2]     , addr_left_buffer_w[0:2];
-logic signed [15:0]     w_data_left_buffer_r[0:2]   , w_data_left_buffer_w[0:2];
-logic signed [15:0]     ia_data_left_buffer_r[0:2]  , ia_data_left_buffer_w[0:2];
-logic                   finish_r, finish_w;
+logic [2:0][6:0]        addr_right_buffer_r[0:2], addr_right_buffer_w[0:2];
+logic signed [15:0]     w_data_right_buffer_r[0:2], w_data_right_buffer_w[0:2];
+logic signed [15:0]     ia_data_right_buffer_r[0:2], ia_data_right_buffer_w[0:2];
+logic [2:0][6:0]        addr_left_buffer_r[0:2], addr_left_buffer_w[0:2];
+logic signed [15:0]     w_data_left_buffer_r[0:2], w_data_left_buffer_w[0:2];
+logic signed [15:0]     ia_data_left_buffer_r[0:2], ia_data_left_buffer_w[0:2];
 
+/*integer i;
 always_comb begin
-    for (int i = 0; i < 3; i++) begin 
+    for (i = 0; i < 3; i=i+1) begin 
         o_addr_right_buffer[i]       = addr_right_buffer_r[i];
         o_w_data_right_buffer[i]     = w_data_right_buffer_r[i];
         o_ia_data_right_buffer[i]    = ia_data_right_buffer_r[i];
@@ -56,8 +76,14 @@ always_comb begin
         o_w_data_left_buffer[i]      = w_data_left_buffer_r[i];
         o_ia_data_left_buffer[i]     = ia_data_left_buffer_r[i];
     end
-end
-assign o_finish = finish_r;
+end*/
+assign o_addr_right_buffer       = addr_right_buffer_r;
+assign o_w_data_right_buffer     = w_data_right_buffer_r;
+assign o_ia_data_right_buffer    = ia_data_right_buffer_r;
+assign o_addr_left_buffer        = addr_left_buffer_r;
+assign o_w_data_left_buffer      = w_data_left_buffer_r;
+assign o_ia_data_left_buffer     = ia_data_left_buffer_r;
+assign o_finish                  = finish_r;
 
 logic left_ready_r, left_ready_w;
 logic right_ready_r, right_ready_w;
@@ -65,29 +91,29 @@ logic right_ready_r, right_ready_w;
 assign o_left_ready = left_ready_r;
 assign o_right_ready = right_ready_r;
 //////////////////////////////////////////////////
-
+integer j;
 // ===== Combinational Blocks ===== 
 always_comb begin
-    finish_w        = finish_r;
+    /*finish_w        = finish_r;
     state_w         = state_r;
     write_pos_w     = write_pos_r;
     current_idx_w   = current_idx_r;
     left_ready_w    = left_ready_r;
     right_ready_w   = right_ready_r;
-    for (int i = 0; i < 3; i++) begin
-        addr_right_buffer_w[i]      = addr_right_buffer_r[i];
-        w_data_right_buffer_w[i]    = w_data_right_buffer_r[i];
-        ia_data_right_buffer_w[i]   = ia_data_right_buffer_r[i];
-        addr_left_buffer_w[i]       = addr_left_buffer_r[i];
-        w_data_left_buffer_w[i]     = w_data_left_buffer_r[i];
-        ia_data_left_buffer_w[i]    = ia_data_left_buffer_r[i];
-    end
+    for (j = 0; j < 3; j=j+1) begin
+        addr_right_buffer_w[j]      = addr_right_buffer_r[j];
+        w_data_right_buffer_w[j]    = w_data_right_buffer_r[j];
+        ia_data_right_buffer_w[j]   = ia_data_right_buffer_r[j];
+        addr_left_buffer_w[j]       = addr_left_buffer_r[j];
+        w_data_left_buffer_w[j]     = w_data_left_buffer_r[j];
+        ia_data_left_buffer_w[j]    = ia_data_left_buffer_r[j];
+    end*/
 
     case(state_r)
         S_IDLE: begin
             if (i_start) begin
                 state_w = S_WRITE_RIGHT;
-                if (i_valid_buf[current_idx_r] == 0 && i_valid_buf[current_idx_r+1] == 0 && i_valid_buf[current_idx_r+2] == 0) begin
+                if (i_valid_buf[current_idx_r] == 0 && i_valid_buf[(current_idx_r+1)] == 0 && i_valid_buf[(current_idx_r+2)] == 0) begin
                     current_idx_w = current_idx_r + 3;
                 end
                 else begin
@@ -148,7 +174,7 @@ always_comb begin
                 finish_w = 1;
                 state_w = S_IDLE;
             end else begin
-                if (i_valid_buf[current_idx_r] == 0 && i_valid_buf[current_idx_r+1] == 0 && i_valid_buf[current_idx_r+2] == 0) begin
+                if (i_valid_buf[current_idx_r] == 0 && i_valid_buf[(current_idx_r+1)] == 0 && i_valid_buf[(current_idx_r+2)] == 0) begin
                     current_idx_w = current_idx_r + 3;
                 end
                 else begin
@@ -265,50 +291,70 @@ always_comb begin
         end
 
         default: begin
-            
+            finish_w                    = finish_r;
+            state_w                     = state_r;
+            write_pos_w                 = write_pos_r;
+            current_idx_w               = current_idx_r;
+            left_ready_w                = left_ready_r;
+            right_ready_w               = right_ready_r;
+            addr_right_buffer_w         = addr_right_buffer_r;
+            w_data_right_buffer_w       = w_data_right_buffer_r;
+            ia_data_right_buffer_w      = ia_data_right_buffer_r;
+            addr_left_buffer_w          = addr_left_buffer_r;
+            w_data_left_buffer_w        = w_data_left_buffer_r;
+            ia_data_left_buffer_w       = ia_data_left_buffer_r;
+
         end
     endcase
 end
 
 // ===== Sequential Blocks =====
+integer p, q;
 always_ff @(posedge i_clk or negedge i_rst_n) begin
     if(!i_rst_n) begin
         finish_r        <= 0;
         state_r         <= S_IDLE;
-        $display("State_r in reset: %d", state_r);
+        //$display("State_r in reset: %d", state_r);
         write_pos_r     <= 0;
         current_idx_r   <= 0;
         left_ready_r    <= 0;
         right_ready_r   <= 0;
 
-        for (int i = 0; i < 3; i++) begin
-            addr_right_buffer_r[i]      <= 0;
-            w_data_right_buffer_r[i]    <= 0;
-            ia_data_right_buffer_r[i]   <= 0;
-            addr_left_buffer_r[i]       <= 0;
-            w_data_left_buffer_r[i]     <= 0;
-            ia_data_left_buffer_r[i]    <= 0;
+        for (p = 0; p < 3; p=p+1) begin
+            addr_right_buffer_r[p]      <= 0;
+            w_data_right_buffer_r[p]    <= 0;
+            ia_data_right_buffer_r[p]   <= 0;
+            addr_left_buffer_r[p]       <= 0;
+            w_data_left_buffer_r[p]     <= 0;
+            ia_data_left_buffer_r[p]    <= 0;
         end
     end
     else begin
         finish_r        <= finish_w;
         state_r         <= state_w;
-        $display("State_r in ff: %d", state_r);
-        $display("State_w in ff: %d", state_w);
+        //$display("State_r in ff: %d", state_r);
+        //$display("State_w in ff: %d", state_w);
 
         write_pos_r     <= write_pos_w;
         current_idx_r   <= current_idx_w;
         left_ready_r    <= left_ready_w;
         right_ready_r   <= right_ready_w;
 
-        for (int i = 0; i < 3; i++) begin
-            addr_right_buffer_r[i]      <= addr_right_buffer_w[i];
-            w_data_right_buffer_r[i]    <= w_data_right_buffer_w[i];
-            ia_data_right_buffer_r[i]   <= ia_data_right_buffer_w[i];
-            addr_left_buffer_r[i]       <= addr_left_buffer_w[i];
-            w_data_left_buffer_r[i]     <= w_data_left_buffer_w[i];
-            ia_data_left_buffer_r[i]    <= ia_data_left_buffer_w[i];
-        end
+        addr_right_buffer_r      <= addr_right_buffer_w;
+        w_data_right_buffer_r    <= w_data_right_buffer_w;
+        ia_data_right_buffer_r   <= ia_data_right_buffer_w;
+        addr_left_buffer_r       <= addr_left_buffer_w;
+        w_data_left_buffer_r     <= w_data_left_buffer_w;
+        ia_data_left_buffer_r    <= ia_data_left_buffer_w;
+        /*
+        for (q = 0; q < 3; q=q+1) begin
+            addr_right_buffer_r[q]      <= addr_right_buffer_w[q];
+            w_data_right_buffer_r[q]    <= w_data_right_buffer_w[q];
+            ia_data_right_buffer_r[q]   <= ia_data_right_buffer_w[q];
+            addr_left_buffer_r[q]       <= addr_left_buffer_w[q];
+            w_data_left_buffer_r[q]     <= w_data_left_buffer_w[q];
+            ia_data_left_buffer_r[q]    <= ia_data_left_buffer_w[q];
+        end*/
     end
 end
 

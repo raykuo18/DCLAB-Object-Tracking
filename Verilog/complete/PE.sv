@@ -66,6 +66,7 @@ logic pe_reducer_finish;
 // self
 logic [$clog2(`W_C_LENGTH):0] w_iter_count_r, w_iter_count_w;
 logic addrRF_finished_r, addrRF_finished_w;
+logic aim_finish_r, aim_finish_w;
 
 //////////////////// Submodule ////////////////////
 AddrToRF addr_to_rf(
@@ -135,6 +136,7 @@ always_comb begin
     aim_start_w         = aim_start_r;
     w_iter_count_w      = w_iter_count_r;
     addrRF_finished_w   = addrRF_finished_r;
+    aim_finish_w        = aim_finish_r;
 
     case (state_r)
         S_IDLE: begin
@@ -150,22 +152,38 @@ always_comb begin
         end
 
         S_PREPROCESS: begin
-            //aim_start_w = 0;
+            aim_start_w = 0;
             if (addr_to_rf_finish == 1) begin
                 addrRF_finished_w = 1;
             end
-            if (addrRF_finished_r && w_iter_count_r == i_w_iters) begin // change state
+            ///////////////// For simplify /////////////////
+            if (aim_finish == 1) begin
+                aim_finish_w = 1;
+            end
+            
+            if (addrRF_finished_r == 1 && aim_finish_r == 1) begin // change state
                 state_w = S_ENC_MAC;
                 w_iter_count_w = 0;
+                addrRF_finished_w = 0;
+                aim_finish_w = 0;
+
                 vp_enc_start = 1;
-                aim_start_w = 0;
             end
-            //else begin
-            for (int i=0; i<32; i=i+1) begin
-                aim_w_c_input[i] = i_w_c_idx[i + w_iter_count_r * 32];
-            end
-            w_iter_count_w = w_iter_count_r + 1;
-            //end
+            ////////////////////////////////////////////////
+
+            ///////////////// For simplify /////////////////
+            // if (addrRF_finished_r && w_iter_count_r >= i_w_iters) begin // change state
+            //     state_w = S_ENC_MAC;
+            //     w_iter_count_w = 0;
+            //     vp_enc_start = 1;
+            //     aim_start_w = 0;
+            // end
+            
+            // for (int i=0; i<32; i=i+1) begin
+            //     aim_w_c_input[i] = i_w_c_idx[i + w_iter_count_r * 32];
+            // end
+            // w_iter_count_w = w_iter_count_r + 1;
+            ////////////////////////////////////////////////
         end
 
         S_ENC_MAC: begin
@@ -203,12 +221,16 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
         aim_start_r         <= 0;
         w_iter_count_r      <= 0;
         addrRF_finished_r   <= 0;
+        aim_finish_r        <= 0;
+        // vp_enc_start        <= 0;
+        // pe_reducer_start    <= 0;
     end else begin
         state_r             <= state_w;
         finish_r            <= finish_w;
         aim_start_r         <= aim_start_w;
         w_iter_count_r      <= w_iter_count_w;
         addrRF_finished_r   <= addrRF_finished_w;
+        aim_finish_r        <= aim_finish_w;
     end
 end
 
