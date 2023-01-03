@@ -36,7 +36,7 @@ localparam          S_WRITE_LEFT = 2;
 
 logic [1:0]         state_r, state_w;
 logic [1:0]         write_pos_r, write_pos_w;
-logic [4:0]         current_idx_r, current_idx_w;
+logic [9:0]         current_idx_r, current_idx_w; // logic [4:0]         current_idx_r, current_idx_w;
 
 /////////////////// output var ///////////////////
 logic [2:0][6:0]        addr_right_buffer_r[0:2]    , addr_right_buffer_w[0:2];

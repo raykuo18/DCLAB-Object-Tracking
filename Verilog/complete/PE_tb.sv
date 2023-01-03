@@ -91,6 +91,26 @@ module tb;
             start_cal = 1'b0;
         end
 
+
+        @(posedge finish);
+        #50 begin
+            start_cal = 1'b1;
+        end
+        #10 begin
+            start_cal = 1'b0;
+        end
+
+
+        @(posedge finish);
+        #70 begin
+            start_cal = 1'b1;
+        end
+        #10 begin
+            start_cal = 1'b0;
+        end
+
+
+
 	end
 
 

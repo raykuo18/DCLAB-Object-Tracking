@@ -14,14 +14,18 @@ module tb_top;
 
 
     logic       i_start;
+    logic       i_start_2;
     logic [3:0] o_random_out;
+    logic [3:0] o_random_out_2;
 
 
     Top top0(
         .i_clk          (clk),
         .i_rst_n        (rst),
         .i_start        (i_start),
-        .o_random_out   (o_random_out)
+        .i_start_2      (i_start_2),
+        .o_random_out   (o_random_out),
+        .o_random_out_2 (o_random_out_2)
     );
 
     initial begin
@@ -45,7 +49,7 @@ module tb_top;
 
 
     initial begin
-		#(2000*CLK)
+		#(15000*CLK)
 		$display(".A.B.O.R.T.");
 		$finish;
 	end

@@ -131,6 +131,7 @@ PEReducer pe_reducer(
 );
 
 assign o_output_feature = output_feature;
+assign o_finish         = finish_r;
 
 always_comb begin
     state_w             = state_r;

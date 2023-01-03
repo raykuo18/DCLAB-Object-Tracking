@@ -11,10 +11,18 @@ ncverilog PE_TEMP.sv +access+rw
 
 ncverilog tb_PE_TEMP.sv PE_TEMP.sv +access+rw
 
+
+----------- PE.sv ------------------
+
+ncverilog +access+rw PE_tb.sv PE.sv PE_Reducer.sv VPEncoder.sv AIM.sv Addr_RF.sv
+
 ----------- Top.sv ------------------
 ncverilog Top.sv +access+rw
 
 ncverilog tb_Top.sv Top.sv +access+rw
+
+ncverilog +access+rw Top_tb.sv Top.sv PE.sv PE_Reducer.sv VPEncoder.sv AIM.sv Addr_RF.sv
+
 
 
 

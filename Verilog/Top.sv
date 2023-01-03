@@ -5159,7 +5159,7 @@ module Top(
 
             // Output
             logic                                  o_finish_PE [0:`PE_ROW-1][0:`PE_COL-1];
-            logic signed [`IA_DATA_BITWIDTH-1:0]   o_OA        [0:`PE_ROW-1][0:`PE_COL-1][0:`IA_ROW*`IA_CHANNEL-1];
+            logic signed [`IA_DATA_BITWIDTH-1:0]   o_OA        [0:`PE_ROW-1][0:`PE_COL-1][0:3*`IA_CHANNEL-1];
             
         // ----------------------- Else ------------------------
             logic                                  o_finish_CAMERA;
@@ -5168,26 +5168,35 @@ module Top(
     // ========================== Logic (Reg) =============================
         // For PE
         logic                                   i_start_PEs, i_start_PEs_n;
-        logic        [$clog2(`IA_CHANNEL):0]  ia_iters    [0:`IA_ROW-1][0:`IA_COL-1],                  ia_iters_n    [0:`IA_ROW-1][0:`IA_COL-1];
-        logic        [$clog2(`IA_CHANNEL):0]  ia_len      [0:`IA_ROW-1][0:`IA_COL-1],                  ia_len_n      [0:`IA_ROW-1][0:`IA_COL-1];
+        logic        [$clog2(`IA_CHANNEL):0]    ia_iters    [0:`IA_ROW-1][0:`IA_COL-1],                  ia_iters_n    [0:`IA_ROW-1][0:`IA_COL-1];
+        logic        [$clog2(`IA_CHANNEL):0]    ia_len      [0:`IA_ROW-1][0:`IA_COL-1],                  ia_len_n      [0:`IA_ROW-1][0:`IA_COL-1];
         // For OA
         logic signed [`IA_DATA_BITWIDTH-1:0]    oa_buffer   [0:`IA_ROW-1][0:`IA_COL-1][0:`IA_CHANNEL-1], oa_buffer_n   [0:`IA_ROW-1][0:`IA_COL-1][0:`IA_CHANNEL-1];
         logic signed [`IA_DATA_BITWIDTH-1:0]    oa_reducer  [0:`IA_ROW+`IA_COL-2][0:2][0:`IA_CHANNEL-1], oa_reducer_n  [0:`IA_ROW+`IA_COL-2][0:2][0:`IA_CHANNEL-1];
         logic signed [`IA_DATA_BITWIDTH-1:0]    ia_data     [0:`IA_ROW-1][0:`IA_COL-1][0:`IA_CHANNEL-1], ia_data_n     [0:`IA_ROW-1][0:`IA_COL-1][0:`IA_CHANNEL-1];
         logic        [`IA_C_BITWIDTH-1:0]       ia_c_idx    [0:`IA_ROW-1][0:`IA_COL-1][0:`IA_CHANNEL-1], ia_c_idx_n    [0:`IA_ROW-1][0:`IA_COL-1][0:`IA_CHANNEL-1];
         logic        [4:0]                      state, state_n;
-        logic        [$clog2(`IA_ROW) :0]      Hi, Hi_n,                  h, h_n;
-        logic        [$clog2(`IA_COL) :0]      Wi, Wi_n,                  w_start_max, w_start_max_n,      w_start, w_start_n;        
-        logic        [$clog2(`IA_CHANNEL):0]  Co, Co_n;
+        logic        [$clog2(`IA_ROW) :0]       Hi, Hi_n,                  h, h_n;
+        logic        [$clog2(`IA_COL) :0]       Wi, Wi_n,                  w_start_max, w_start_max_n,      w_start, w_start_n;        
+        logic        [$clog2(`IA_CHANNEL):0]    Co, Co_n;
+        logic        [2:0]                      mp_counter, mp_counter_n;
 
-        // Maxpool
+
+        logic        [$clog2(`IA_CHANNEL):0]    cp_counter  [0:`IA_ROW-1][0:`IA_COL-1],                  cp_counter_n  [0:`IA_ROW-1][0:`IA_COL-1];
+        logic        [$clog2(`IA_CHANNEL):0]    ch_count, ch_count_n;  
+
+        logic        [15:0]                      fc_counter, fc_counter_n;
+        
+
+        logic        [`IA_DATA_BITWIDTH-1:0]    fc_arr[0:287], fc_arr_n[0:287]; 
+        logic        [63:0]                     result, result_n;
 
 
     // ========================== PE Arrays (7 x 3) === unfinished ==========================
         generate
             for (genvar gv_row=0; gv_row < `PE_ROW; gv_row++) begin
                 for (genvar gv_col=0; gv_col < `PE_COL; gv_col++) begin
-                    PE_TEMP u_PE_TEMP(
+                    PE u_PE(
                         .i_clk          (i_clk),
                         .i_rst_n        (i_rst_n),
                         .i_start        (i_start_PEs),
@@ -5318,7 +5327,7 @@ module Top(
 
 
         task CONV;    // finish
-            i_start_PEs_n = 1;
+            i_start_PEs_n = 0;
             for (int pe_row=0; pe_row < `PE_ROW; pe_row++) begin 
                 i_ia_h      [pe_row]  =         h;
                 i_ia_w      [pe_row]  =         w_start + pe_row;
@@ -5488,12 +5497,95 @@ module Top(
         endtask 
 
         task COMPRESS;
-
+            ch_count_n = (ch_count == 7 ) ? 0 : ch_count + 1;
+            for (int r=0; r < `IA_ROW; r++) begin
+                for (int c=0; c< `IA_COL; c++) begin 
+                    if (oa_buffer   [r][c][ch_count][`IA_DATA_BITWIDTH-1]      == 0) begin // positive
+                        cp_counter_n[r][c]          = cp_counter[r][c] + 1;
+                        ia_data_n   [r][c][  cp_counter[r][c]   ] = oa_buffer   [r][c][ch_count];
+                        ia_c_idx_n  [r][c][  cp_counter[r][c]   ] = ch_count;
+                    end
+                end
+            end
         endtask
 
         task MAXPOOL;
-            // for (int r=0; r< (`IA))
 
+            mp_counter_n = (mp_counter == 3 ) ? 0 : mp_counter + 1;
+
+            case(mp_counter)
+                0: begin
+                    for (int r=0; r< `IA_ROW; r=r+2 ) begin
+                        for (int c=0; c < `IA_COL; c=c+2 ) begin
+                            for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
+                                if (oa_buffer[r][c][ch] > oa_buffer[r+1][c][ch] ) ia_data_n[r>>1][c>>1][ch] = oa_buffer[r][c][ch];
+                                else ia_data_n[r>>1][c>>1][ch] = oa_buffer[r+1][c][ch];
+                            end
+                        end
+                    end
+                end
+                1: begin
+                    for (int r=0; r< `IA_ROW; r=r+2 ) begin
+                        for (int c=0; c < `IA_COL; c=c+2 ) begin
+                            for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
+                                if (ia_data[r>>1][c>>1][ch] > oa_buffer[r][c+1][ch] ) ia_data_n[r>>1][c>>1][ch] = ia_data[r>>1][c>>1][ch];
+                                else ia_data_n[r>>1][c>>1][ch] = oa_buffer[r][c+1][ch];
+                            end
+                        end
+                    end
+                end
+                2: begin
+                    for (int r=0; r< `IA_ROW; r=r+2 ) begin
+                        for (int c=0; c < `IA_COL; c=c+2 ) begin
+                            for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
+                                if (ia_data[r>>1][c>>1][ch] > oa_buffer[r+1][c+1][ch] ) ia_data_n[r>>1][c>>1][ch] = ia_data[r>>1][c>>1][ch];
+                                else ia_data_n[r>>1][c>>1][ch] = oa_buffer[r+1][c+1][ch];
+                            end
+                        end
+                    end
+                end
+                3: begin // relu
+                    for (int r=0; r< `IA_ROW; r=r+2 ) begin
+                        for (int c=0; c < `IA_COL; c=c+2 ) begin
+                            for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
+                                if (ia_data[r>>1][c>>1][ch] > 0 ) ia_data_n[r>>1][c>>1][ch] = ia_data[r>>1][c>>1][ch];
+                                else ia_data_n[r>>1][c>>1][ch] = 0;
+                            end
+                        end
+                    end
+                end
+            endcase
+        endtask
+
+        task LINEAR;
+            fc_counter_n = (fc_counter == 2+287) ? 0 : fc_counter + 1;
+            case(fc_counter)
+                0: begin
+                    for (int r=0; r< 6; r++ ) begin
+                        for (int c=0; c < 6; c++ ) begin
+                            for (int ch=0; ch < 8; ch++ ) begin
+                                oa_buffer_n[r][c][ch]   = $signed(ia_data[r][c][ch]) * $signed(w_data_fc[ ch + c*8 + r*48]);
+                                oa_buffer_n[r+6][c][ch] = $signed(ia_data[r][c][ch]) * $signed(w_data_fc[288+ ch + c*8 + r*48]);
+                            end
+                        end
+                    end
+                end
+
+                1: begin
+                    for (int r=0; r< 6; r++ ) begin
+                        for (int c=0; c < 6; c++ ) begin
+                            for (int ch=0; ch < 8; ch++ ) begin
+                                fc_arr_n[ch + c*8 + r*48] = $signed(oa_buffer[r][c][ch]) - $signed(oa_buffer[r+6][c][ch]);
+                                
+                            end
+                        end
+                    end
+                end
+
+                default: begin
+                    result_n = $signed(result) + $signed(fc_arr[fc_counter-2]);
+                end
+            endcase
         endtask
 
     // ========================== State Control (Combinational Circuit) ========= unfinish============
@@ -5515,10 +5607,10 @@ module Top(
                 S_PUT_W_2:      state_n = S_CONV_2;
                 S_CONV_2:       state_n = (o_finish_PE==PEs_FINISH)   ? S_REDUCE_2 : state; 
                 S_REDUCE_2:     state_n = S_TOOABUFFER_2;
-                S_TOOABUFFER_2:       state_n = (h==Hi-1 && w_start==w_start_max-1) ? S_MAXPOOL  : S_CONV_2;
+                S_TOOABUFFER_2: state_n = (h==Hi-1 && w_start==w_start_max-1) ? S_MAXPOOL  : S_CONV_2;
 
-                S_MAXPOOL:      state_n = S_LINEAR; // need to rethink
-                S_LINEAR:       state_n = S_OUT;    // need to rethink
+                S_MAXPOOL:      state_n = (mp_counter == 3) ? S_LINEAR : state; // need to rethink
+                S_LINEAR:       state_n = (fc_counter == 2+287) ? S_OUT    : state;    // need to rethink
                 // S_OUT:          state_n = S_CAMERA; // need to rethink
 
                 
@@ -5537,6 +5629,7 @@ module Top(
             h_n            = h;
             w_start_n      = w_start;
             Co_n           = Co;
+            ch_count_n     = ch_count;
 
             ia_iters_n     = ia_iters;
             ia_len_n       = ia_len;
@@ -5565,6 +5658,7 @@ module Top(
                     Wi_n = 16;
                     Co_n = 8;
                     w_start_max_n = 3;
+                    i_start_PEs_n = 1;
                 end
 
                 S_CONV_1 : begin
@@ -5574,7 +5668,7 @@ module Top(
 
                 S_REDUCE_1: begin
                     TOOAREDUCER();
-                    i_start_PEs_n = 0;
+                    // i_start_PEs_n = 0;
                 end
 
                 S_TOOABUFFER_1: begin // put to oa_buffer
@@ -5583,9 +5677,13 @@ module Top(
                     if (h==Hi-1) begin
                         w_start_n = (w_start == w_start_max-1) ? 0 : w_start+1;
                     end
+                    i_start_PEs_n = (h==Hi-1 && w_start==w_start_max-1) ? 0 : 1;
+
+                    ch_count_n = 0;
                 end
 
                 S_COMPRESS_1: begin // put to IA
+                    COMPRESS();
                 end
 
                 S_PUT_W_2: begin
@@ -5602,7 +5700,7 @@ module Top(
 
                 S_REDUCE_2: begin
                     TOOAREDUCER();
-                    i_start_PEs_n = 0;
+                    // i_start_PEs_n = 0;
                 end
 
                 S_TOOABUFFER_2: begin // put to oa_buffer
@@ -5611,15 +5709,25 @@ module Top(
                     if (h==Hi-1) begin
                         w_start_n = (w_start == w_start_max-1) ? 0 : w_start+1;
                     end
+
+                    
+                    i_start_PEs_n = (h==Hi-1 && w_start==w_start_max-1) ? 0 : 1 ;
+                    mp_counter_n = 0;
                 end
 
-                S_MAXPOOL: begin // from oa_buffer to ia_buffer, one cycle
+                S_MAXPOOL: begin // from oa_buffer to ia_data, one cycle
+                    MAXPOOL();
+
+                    fc_counter_n = 0;
                 end
 
-                S_LINEAR : begin
+                S_LINEAR : begin // from iadata to oa_buffer
+                    LINEAR();
                 end
 
                 S_OUT    : begin
+                    
+                    o_random_out_n = (result  < 0);
                 end
 
             endcase
@@ -5639,13 +5747,20 @@ module Top(
                 h            <= 0;
                 w_start      <= 0;
                 Co           <= 0;
+                mp_counter   <= 0;
+                ch_count     <= 0;
+                fc_counter   <= 0;
+                result       <= 0;
+                fc_arr       <= '{default:0};
+                
 
                 
 
                 for (int r=0; r < `IA_ROW; r++ ) begin
                     for (int c=0; c < `IA_COL; c++ ) begin
-                        ia_iters [r][c] <= 0;
-                        ia_len   [r][c] <= 0;
+                        ia_iters   [r][c] <= 0;
+                        ia_len     [r][c] <= 0;
+                        cp_counter [r][c] <= 0; 
                         for (int ch=0; ch < `IA_CHANNEL; ch++ ) begin
                             ia_data  [r][c][ch] <= 1;
                             ia_c_idx [r][c][ch] <= ch;
@@ -5675,6 +5790,9 @@ module Top(
                 h            <= h_n;
                 w_start      <= w_start_n;
                 Co           <= Co_n;
+                mp_counter   <= mp_counter_n;
+                ch_count     <= ch_count_n;
+                result       <= result_n;
 
                 ia_iters     <= ia_iters_n;
                 ia_len       <= ia_len_n;
@@ -5682,8 +5800,9 @@ module Top(
                 ia_c_idx     <= ia_c_idx_n;
                 oa_reducer   <= oa_reducer_n;
                 oa_buffer    <= oa_buffer_n;
-                
-
+                cp_counter   <= cp_counter_n; 
+                fc_counter   <= fc_counter_n;
+                fc_arr       <= fc_arr_n;
             end
         end
 
