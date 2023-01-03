@@ -129,7 +129,13 @@ always_comb begin
             if (current_idx_r >= i_w_len) begin
                 // reset
                 if (write_pos_r == 0) begin
-                    right_ready_w = 0;
+                    ia_data_right_buffer_w[0] = 0;
+                    w_data_right_buffer_w[0] = 0;
+                    ia_data_right_buffer_w[1] = 0;
+                    w_data_right_buffer_w[1] = 0;
+                    ia_data_right_buffer_w[2] = 0;
+                    w_data_right_buffer_w[2] = 0;
+                    right_ready_w = 1;
                 end else if (write_pos_r == 1) begin
                     ia_data_right_buffer_w[1] = 0;
                     w_data_right_buffer_w[1] = 0;
@@ -199,7 +205,13 @@ always_comb begin
             if (current_idx_r >= i_w_len) begin
                 // reset
                 if (write_pos_r == 0) begin
-                    left_ready_w = 0;
+                    ia_data_left_buffer_w[0] = 0;
+                    w_data_left_buffer_w[0] = 0;
+                    ia_data_left_buffer_w[1] = 0;
+                    w_data_left_buffer_w[1] = 0;
+                    ia_data_left_buffer_w[2] = 0;
+                    w_data_left_buffer_w[2] = 0;
+                    left_ready_w = 1;
                 end else if (write_pos_r == 1) begin
                     ia_data_left_buffer_w[1] = 0;
                     w_data_left_buffer_w[1] = 0;

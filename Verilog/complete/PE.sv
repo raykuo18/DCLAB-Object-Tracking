@@ -68,6 +68,7 @@ logic pe_reducer_finish;
 logic [$clog2(`W_C_LENGTH):0] w_iter_count_r, w_iter_count_w;
 logic addrRF_finished_r, addrRF_finished_w;
 logic aim_finish_r, aim_finish_w;
+logic vp_encoder_finish_r, vp_encoder_finish_w;
 
 //////////////////// Submodule ////////////////////
 AddrToRF addr_to_rf(
@@ -138,6 +139,7 @@ always_comb begin
     w_iter_count_w      = w_iter_count_r;
     addrRF_finished_w   = addrRF_finished_r;
     aim_finish_w        = aim_finish_r;
+    vp_encoder_finish_w = vp_encoder_finish_r;
     aim_start = 0;
     pe_reducer_start = 0;
     vp_enc_start = 0;
@@ -197,7 +199,10 @@ always_comb begin
 
         S_ENC_MAC: begin
             vp_enc_start = 0;
-            if (vp_encoder_finish == 1 && pe_reducer_finish == 1) begin
+            if (vp_encoder_finish == 1) begin
+                vp_encoder_finish_w = 1;
+            end
+            if (vp_encoder_finish_r == 1 && pe_reducer_finish == 1) begin
                 state_w = S_IDLE;
                 finish_w = 1;
             end else begin
@@ -231,6 +236,7 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
         w_iter_count_r      <= 0;
         addrRF_finished_r   <= 0;
         aim_finish_r        <= 0;
+        vp_encoder_finish_r <= 0;
         // vp_enc_start        <= 0;
         // pe_reducer_start    <= 0;
     end else begin
@@ -240,6 +246,7 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
         w_iter_count_r      <= w_iter_count_w;
         addrRF_finished_r   <= addrRF_finished_w;
         aim_finish_r        <= aim_finish_w;
+        vp_encoder_finish_r <= vp_encoder_finish_w;
     end
 end
 
