@@ -41,7 +41,8 @@ logic addr_to_rf_finish;
 logic [2:0][6:0] addr_buf[0:`W_C_LENGTH-1];
 
 // AIM
-logic aim_start_r, aim_start_w;
+// logic aim_start_r, aim_start_w;
+logic aim_start;
 // logic signed [15:0] aim_w_c_input_r[0:31], aim_w_c_input_w[0:31]
 logic aim_finish;
 logic valids_buf[0:`W_C_LENGTH-1];
@@ -87,7 +88,7 @@ AddrToRF addr_to_rf(
 AIM aim(
     .i_clk(i_clk),
     .i_rst_n(i_rst_n),
-    .i_start(aim_start_r),
+    .i_start(aim_start),
     .i_ite(i_ia_iters), // DO SUBTRACT 1, ex, run 2 iteration -> i_ite = 1
     .i_word(aim_w_c_input), // weight channel idx // dynamic assignment
     .i_IA(i_ia_c_idx), // 8*32 = 256
@@ -133,17 +134,21 @@ assign o_output_feature = output_feature;
 always_comb begin
     state_w             = state_r;
     finish_w            = finish_r;
-    aim_start_w         = aim_start_r;
+    // aim_start_w         = aim_start_r;
     w_iter_count_w      = w_iter_count_r;
     addrRF_finished_w   = addrRF_finished_r;
     aim_finish_w        = aim_finish_r;
-    pe_reducer_start = 0; // add by Justine
+    aim_start = 0;
+    pe_reducer_start = 0;
+    vp_enc_start = 0;
+
+
     case (state_r)
         S_IDLE: begin
             if (i_start) begin
                 finish_w = 0;
                 state_w = S_PREPROCESS;
-                aim_start_w = 1;
+                aim_start = 1;
                 for (int i=0; i<32; i=i+1) begin
                     aim_w_c_input[i] = i_w_c_idx[i + w_iter_count_r * 32];
                 end
@@ -153,7 +158,6 @@ always_comb begin
         end
 
         S_PREPROCESS: begin
-            aim_start_w = 0;
             if (addr_to_rf_finish == 1) begin
                 addrRF_finished_w = 1;
             end
@@ -162,7 +166,7 @@ always_comb begin
                 aim_finish_w = 1;
             end
             
-            if (addrRF_finished_r == 1 && aim_finish_r == 1) begin // change state
+            if (addrRF_finished_r == 1 && aim_finish_w == 1 && w_iter_count_r >= i_w_iters) begin // change state
                 state_w = S_ENC_MAC;
                 w_iter_count_w = 0;
                 addrRF_finished_w = 0;
@@ -179,11 +183,15 @@ always_comb begin
             //     vp_enc_start = 1;
             //     aim_start_w = 0;
             // end
-            
-            // for (int i=0; i<32; i=i+1) begin
-            //     aim_w_c_input[i] = i_w_c_idx[i + w_iter_count_r * 32];
-            // end
-            // w_iter_count_w = w_iter_count_r + 1;
+            if (aim_finish == 1 && w_iter_count_r < i_w_iters) begin
+                aim_start = 1;
+                for (int i=0; i<32; i=i+1) begin
+                    aim_w_c_input[i] = i_w_c_idx[i + w_iter_count_r * 32];
+                end
+                w_iter_count_w = w_iter_count_r + 1;
+            end else begin
+                aim_start = 0;
+            end
             ////////////////////////////////////////////////
         end
 
@@ -219,7 +227,7 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
     if(!i_rst_n) begin
         state_r             <= S_IDLE;
         finish_r            <= 0;
-        aim_start_r         <= 0;
+        // aim_start_r         <= 0;
         w_iter_count_r      <= 0;
         addrRF_finished_r   <= 0;
         aim_finish_r        <= 0;
@@ -228,7 +236,7 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
     end else begin
         state_r             <= state_w;
         finish_r            <= finish_w;
-        aim_start_r         <= aim_start_w;
+        // aim_start_r         <= aim_start_w;
         w_iter_count_r      <= w_iter_count_w;
         addrRF_finished_r   <= addrRF_finished_w;
         aim_finish_r        <= aim_finish_w;

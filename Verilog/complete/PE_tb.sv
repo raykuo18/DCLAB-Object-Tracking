@@ -31,7 +31,7 @@ module tb;
     // ===== assign value =====
     assign ia_h = 4;
     assign ia_w = 4;
-    assign ia_ite = 0;
+    assign ia_ite = 1;
     assign ia_len = 4;
     assign w_ite = 1;
     assign w_len = 12;
