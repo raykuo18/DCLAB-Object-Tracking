@@ -20,20 +20,20 @@ logic [`W_C_LENGTH-1:0] ptr_idx;
 logic valid_r[0:`W_C_LENGTH-1], valid_w[0:`W_C_LENGTH-1];
 logic [8:0] pos_r[0:`W_C_LENGTH-1], pos_w[0:`W_C_LENGTH-1];
 
-
+logic i_ite_2;
 logic valid_temp[0:31];
 logic [8:0] pos_temp[0:31];
-
+assign i_ite_2 = i_ite-1;
 assign ptr_idx = ptr_r<<5;
 
-assign o_valid = valid_r;
-assign o_pos = pos_r;
+assign o_valid = valid_w;
+assign o_pos = pos_w;
 
 AIM_func aim_func(
     .i_clk(i_clk),
     .i_rst_n(i_rst_n),
     .i_start(i_start),
-    .i_ite(i_ite),
+    .i_ite(i_ite_2),
     .i_word(i_word),
     .i_IA(i_IA),
     .o_finish(o_finish),
@@ -52,11 +52,11 @@ end
 always_comb begin // ptr
     case(state_r)
         S_IDLE: ptr_w = ptr_r;
-        S_AIM:  ptr_w = (o_finish) ? ptr_r + i_ite + 1: ptr_r;
+        S_AIM:  ptr_w = (o_finish) ? ptr_r + i_ite: ptr_r;
         default: ptr_w = ptr_r;
     endcase
 end
-integer d, e, f;
+integer f;
 always_comb begin // valid & pos
     case(state_r)
         S_IDLE: begin 
@@ -132,6 +132,7 @@ logic [31:0]    match_r, match_w;
 logic           finish_r, finish_w;
 logic           valid_r[0:31], valid_w[0:31];
 logic [8:0]     pos_r[0:31], pos_w[0:31];
+logic [31:0]    enco_finish_r, enco_finish_w;
 
 logic           i_encode_start;
 logic           i_encode_finish[0:31];
@@ -201,7 +202,7 @@ genvar i;
 generate
     for(i=0; i<32; i=i+1) begin
         encoder enco(.i_clk(i_clk), .i_rst_n(i_rst_n), .i_start(i_encode_start), .i_match(match_r[i]), .i_word(map_r[i]),
-         .i_ite(ite_counter_r), .o_valid(valid_w[i]), .o_pos(pos_w[i]));
+         .i_ite(ite_counter_r), .o_finish(enco_finish_w[i]), .o_valid(valid_w[i]), .o_pos(pos_w[i]));
     end
 endgenerate
 
@@ -218,6 +219,7 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
             map_r[s] <= 32'd0;
             valid_r[s] <= 1'd0;
             pos_r[s] <= 9'd0;
+            enco_finish_r <= 1'd1;
         end
     end
     else begin
@@ -228,6 +230,7 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
         map_r           <= map_w;
         valid_r         <= valid_w;
         pos_r           <= pos_w;
+        enco_finish_r   <= enco_finish_w;
     end
 end
 
@@ -240,6 +243,7 @@ module encoder(
     input i_match,
     input [31:0] i_word,
     input [2:0] i_ite,
+    output o_finish,
     output o_valid,
     output [8:0] o_pos
 );
@@ -250,7 +254,9 @@ logic           state_r, state_w;
 logic           valid_r, valid_w;
 logic [8:0]     pos_r, pos_w;
 logic [4:0]     match_pos;
+logic           finish_r, finish_w;
 
+assign o_finish = finish_w;
 assign o_valid = valid_w;
 assign o_pos = pos_w;
 
@@ -300,13 +306,13 @@ always_comb begin // state
         default: state_w = state_r;
     endcase
 end
-/*always_comb begin // finish
+always_comb begin // finish
     case(state_r)
-        S_IDLE: finish_w = 1'd0;
-        S_ENCO: finish_w = 1'd1;
+        S_IDLE: finish_w = 1'd1;
+        S_ENCO: finish_w = 1'd0;
         default: finish_w = finish_r;
     endcase
-end*/
+end
 always_comb begin // valid & pos
     case(state_r)
         /*S_IDLE: begin
@@ -333,13 +339,13 @@ end
 always_ff@(posedge i_clk or negedge i_rst_n) begin
     if(!i_rst_n) begin
         state_r     <= S_IDLE;
-        //finish_r    <= 1'd0;
+        finish_r    <= 1'd1;
         valid_r     <= 1'd0;
         pos_r       <= 9'd0;
     end
     else begin
         state_r     <= state_w;
-        //finish_r    <= finish_w;
+        finish_r    <= finish_w;
         valid_r     <= valid_w;
         pos_r       <= pos_w;
     end
