@@ -137,7 +137,7 @@ always_comb begin
     w_iter_count_w      = w_iter_count_r;
     addrRF_finished_w   = addrRF_finished_r;
     aim_finish_w        = aim_finish_r;
-
+    pe_reducer_start = 0; // add by Justine
     case (state_r)
         S_IDLE: begin
             if (i_start) begin
@@ -149,6 +149,7 @@ always_comb begin
                 end
                 w_iter_count_w = w_iter_count_r + 1;
             end
+
         end
 
         S_PREPROCESS: begin

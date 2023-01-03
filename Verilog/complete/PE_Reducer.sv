@@ -15,7 +15,8 @@ localparam S_IDLE = 2'd0;
 localparam S_PROC = 2'd1;
 localparam S_SLCT = 2'd2;
 
-logic [1:0] state_r, state_w;
+logic [1:0] state_r;
+logic [1:0] state_w;
 logic finish_r, finish_w;
 
 logic signed [`IA_DATA_BITWIDTH-1:0] buf_r[0: 3*`IA_CHANNEL-1], buf_w[0: 3*`IA_CHANNEL-1];
@@ -64,7 +65,9 @@ Computation comp(
 // ===== Combinational Blocks =====
 always_comb begin // state
     case(state_r)
-        S_IDLE: state_w = (i_start) ? S_PROC: state_r;
+        S_IDLE: begin
+            state_w = (i_start == 1'b1) ? S_PROC: state_r;
+        end
         S_PROC: state_w = S_SLCT;
         S_SLCT: state_w = S_IDLE;
         default: state_w = state_r;
@@ -158,6 +161,7 @@ always_comb begin // ptr
         default: ptr_w = ptr_r;
     endcase
 end
+
 // ===== Sequential Blocks =====
 integer i;
 always_ff@(posedge i_clk or negedge i_rst_n) begin
@@ -184,8 +188,6 @@ always_ff@(posedge i_clk or negedge i_rst_n) begin
         buf_r       <= buf_w;
     end
 end
-
-
 endmodule
 
 module AddrProcess(
