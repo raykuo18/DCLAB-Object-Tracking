@@ -287,7 +287,7 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
     if(!i_rst_n) begin
         finish_r        <= 0;
         state_r         <= S_IDLE;
-        $display("State_r in reset: %d", state_r);
+        // $display("State_r in reset: %d", state_r);
         write_pos_r     <= 0;
         current_idx_r   <= 0;
         left_ready_r    <= 0;
@@ -305,8 +305,8 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
     else begin
         finish_r        <= finish_w;
         state_r         <= state_w;
-        $display("State_r in ff: %d", state_r);
-        $display("State_w in ff: %d", state_w);
+        // $display("State_r in ff: %d", state_r);
+        // $display("State_w in ff: %d", state_w);
 
         write_pos_r     <= write_pos_w;
         current_idx_r   <= current_idx_w;
