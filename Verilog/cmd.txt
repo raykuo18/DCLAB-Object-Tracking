@@ -23,6 +23,7 @@ ncverilog tb_Top.sv Top.sv PE_TEMP.sv +access+rw
 
 
 
+
 ncverilog +access+r PE.sv AIM.sv Addr_RF.sv VPEncoder.sv PE_Reducer.sv
 
 
