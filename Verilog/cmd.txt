@@ -25,11 +25,13 @@ ncverilog +access+rw Top_tb.sv Top.sv PE.sv PE_Reducer.sv VPEncoder.sv AIM.sv Ad
 
 
 
+ncverilog +access+rw Top_PE_TEMP_tb.sv Top.sv PE_TEMP.sv
 
 
 
 
 
+ncverilog +access+rw Top_addrRF.sv Addr_RF.sv
 
 
 ncverilog tb_I2C.sv I2C.sv +access+rw

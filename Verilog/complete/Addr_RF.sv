@@ -17,10 +17,10 @@ module AddrToRF(
 localparam S_IDLE = 1'd0;
 localparam S_PROC = 1'd1;
 
-logic state_r, state_w;
-logic finish_r, finish_w;
-logic [`W_POS_PTR_BITWIDTH:0] counter_r, counter_w;
-logic [2:0][6:0] RF_r[0:`W_C_LENGTH-1], RF_w[0:`W_C_LENGTH-1];
+logic                         state_r,                  state_w;
+logic                         finish_r,                 finish_w;
+logic [`W_POS_PTR_BITWIDTH:0] counter_r,                counter_w;
+logic [2:0][6:0]              RF_r[0:`W_C_LENGTH-1],    RF_w[0:`W_C_LENGTH-1];
 
 logic [`W_POS_PTR_BITWIDTH:0] ptr_value_r, ptr_value_w;
 logic [`W_R_LENGTH-1:0] ptr_idx_r, ptr_idx_w;
@@ -30,16 +30,27 @@ assign o_finish = finish_w;
 assign o_RF = RF_w;
 
 // ===== Combinational Blocks =====
-integer i, j;
 always_comb begin // RF
+    RF_w = RF_r;
     case(state_r)
         S_IDLE: begin
-            for(i=0; i<i_length; i=i+1) begin
-                RF_w[i] = RF_r[i];
+            for(int i=0; i<250; i++) begin
+                RF_w[i] =  RF_r[i];
+            end
+            for(int i=250; i<i_length; i++) begin
+                RF_w[i] =  RF_r[i];
             end
         end
         S_PROC: begin
-            for(j=0; j<i_length; j=j+1) begin
+            for(int j=0; j<250; j++) begin
+                if(j == counter_r) begin
+                    RF_w[j][0] = i_h - r_w;
+                    RF_w[j][1] = i_w - i_s;
+                    RF_w[j][2] = k_w;
+                end
+                else RF_w[j] = RF_r[j];
+            end
+            for(int j=250; j<i_length; j++) begin
                 if(j == counter_r) begin
                     RF_w[j][0] = i_h - r_w;
                     RF_w[j][1] = i_w - i_s;
@@ -106,7 +117,7 @@ always_comb begin //r, k
     endcase
 end
 // ===== Sequential Blocks =====
-integer t;
+// integer t;
 always_ff@(posedge i_clk or negedge i_rst_n) begin
     if(!i_rst_n) begin
         state_r     <= S_IDLE;
@@ -116,7 +127,11 @@ always_ff@(posedge i_clk or negedge i_rst_n) begin
         k_r         <= 0;
         ptr_value_r <= 0;
         ptr_idx_r   <= 0;
-        for(t=0; t<i_length; t=t+1) begin
+
+        for(int t=0; t<250; t++) begin
+            RF_r[t] <= 0;
+        end
+          for(int t=250; t<i_length; t++) begin
             RF_r[t] <= 0;
         end
     end

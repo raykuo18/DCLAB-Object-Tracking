@@ -147,7 +147,233 @@ def write_w_pos_ptr():
                 f.write(f"        `{BITWIDTH}'b{b}\n")
                 f.write("    };\n")
         f.write("\n")      
-        f.write(f"// {TARGET}\n")       
+        f.write(f"// {TARGET}\n")     
+
+
+def write_w_all():
+    FILENAME = DIR + f'/w_all.sv'
+    
+    with open(FILENAME , 'w') as f:
+        ## ---------------------------- w_data ----------------------------
+        int_bits = 5
+        dec_bits = 16-int_bits
+        
+        f.write("// w_data\n")
+        for layer in range(1,3):
+            for s in range(3):
+                W = Wbundles[layer][s]
+                data = np.array(W.get_data())      
+                data = (np.round(data*2**dec_bits)).astype(int)
+                data = [np.binary_repr(i,16) for i in data]
+                # data = [ b[0:5]+"_"+b[5:16]for b in data]
+                f.write(f"    localparam logic signed [`W_DATA_BITWIDTH-1:0] w_data_l{layer}_s{s} [0:`W_C_LENGTH_L{layer}_S{s}-1] =\n")
+                f.write("    '{\n")
+                for b in data[:-1]:
+                    f.write(f"        `W_DATA_BITWIDTH'b{b},\n")
+                f.write(f"        `W_DATA_BITWIDTH'b{b}\n")
+                f.write("    };\n")
+        f.write("\n")   
+
+        ## ---------------------------- w_c_idx ----------------------------
+        TARGET = "w_c_idx"
+        BITWIDTH = "W_C_BITWIDTH"
+        LEN = "C"
+        bitwidth = 5  
+
+        f.write(f"// {TARGET}\n")
+        for layer in range(1,3):
+            for s in range(3):
+                W = Wbundles[layer][s]
+                data = np.array(W.get_c_idx())      
+                data = [np.binary_repr(i,bitwidth) for i in data]
+                # data = [ b[0:5]+"_"+b[5:16]for b in data]
+                f.write(f"    localparam logic [`{BITWIDTH}-1:0] {TARGET}_l{layer}_s{s} [0:`W_{LEN}_LENGTH_L{layer}_S{s}-1] =\n")
+                f.write("    '{\n")
+                for b in data[:-1]:
+                    f.write(f"        `{BITWIDTH}'b{b},\n")
+                f.write(f"        `{BITWIDTH}'b{b}\n")
+                f.write("    };\n")
+        f.write("\n")   
+
+        ## ---------------------------- w_r_idx ----------------------------
+        TARGET = "w_r_idx"
+        BITWIDTH = "W_R_BITWIDTH"
+        LEN = "R"
+        bitwidth = 2
+
+        f.write(f"// {TARGET}\n")
+        for layer in range(1,3):
+            for s in range(3):
+                W = Wbundles[layer][s]
+                data = np.array(W.get_r_idx())      
+                data = [np.binary_repr(i,bitwidth) for i in data]
+                # data = [ b[0:5]+"_"+b[5:16]for b in data]
+                f.write(f"    localparam logic [`{BITWIDTH}-1:0] {TARGET}_l{layer}_s{s} [0:`W_{LEN}_LENGTH_L{layer}_S{s}-1] =\n")
+                f.write("    '{\n")
+                for b in data[:-1]:
+                    f.write(f"        `{BITWIDTH}'b{b},\n")
+                f.write(f"        `{BITWIDTH}'b{b}\n")
+                f.write("    };\n")
+        f.write("\n") 
+
+        ## ---------------------------- w_k_idx ----------------------------
+        TARGET = "w_k_idx"
+        BITWIDTH = "W_K_BITWIDTH"
+        LEN = "R"
+        bitwidth = 5
+
+        f.write(f"// {TARGET}\n")
+        for layer in range(1,3):
+            for s in range(3):
+                W = Wbundles[layer][s]
+                data = np.array(W.get_k_idx())      
+                data = [np.binary_repr(i,bitwidth) for i in data]
+                # data = [ b[0:5]+"_"+b[5:16]for b in data]
+                f.write(f"    localparam logic [`{BITWIDTH}-1:0] {TARGET}_l{layer}_s{s} [0:`W_{LEN}_LENGTH_L{layer}_S{s}-1] =\n")
+                f.write("    '{\n")
+                for b in data[:-1]:
+                    f.write(f"        `{BITWIDTH}'b{b},\n")
+                f.write(f"        `{BITWIDTH}'b{b}\n")
+                f.write("    };\n")
+        f.write("\n")    
+
+        ## ---------------------------- w_pos_ptr ----------------------------  
+        TARGET = "w_pos_ptr"
+        BITWIDTH = "W_POS_PTR_BITWIDTH"
+        LEN = "R"
+        bitwidth = 11
+
+        f.write(f"// {TARGET}\n")
+        for layer in range(1,3):
+            for s in range(3):
+                W = Wbundles[layer][s]
+                data = np.array(W.get_pos_ptr())      
+                data = [np.binary_repr(i,bitwidth) for i in data]
+                # data = [ b[0:5]+"_"+b[5:16]for b in data]
+                f.write(f"    localparam logic [`{BITWIDTH}-1:0] {TARGET}_l{layer}_s{s} [0:`W_{LEN}_LENGTH_L{layer}_S{s}-1] =\n")
+                f.write("    '{\n")
+                for b in data[:-1]:
+                    f.write(f"        `{BITWIDTH}'b{b},\n")
+                f.write(f"        `{BITWIDTH}'b{b}\n")
+                f.write("    };\n")
+        f.write("\n")      
+        f.write(f"// w_all\n")  
+    
+
+
+
+
+
+
+def write_w_all_all_layer1():
+    FILENAME = DIR + f'/w_all_all_layer1.sv'
+    
+    with open(FILENAME , 'w') as f:
+        ## ---------------------------- w_data ----------------------------
+        int_bits = 5
+        dec_bits = 16-int_bits
+        
+        f.write("// w_data\n")
+        for layer in range(1,3):
+            for s in range(3):
+                W = Wbundles[1][s]
+                data = np.array(W.get_data())      
+                data = (np.round(data*2**dec_bits)).astype(int)
+                data = [np.binary_repr(i,16) for i in data]
+                # data = [ b[0:5]+"_"+b[5:16]for b in data]
+                f.write(f"    localparam logic signed [`W_DATA_BITWIDTH-1:0] w_data_l{layer}_s{s} [0:`W_C_LENGTH_L{layer}_S{s}-1] =\n")
+                f.write("    '{\n")
+                for b in data[:-1]:
+                    f.write(f"        `W_DATA_BITWIDTH'b{b},\n")
+                f.write(f"        `W_DATA_BITWIDTH'b{b}\n")
+                f.write("    };\n")
+        f.write("\n")   
+
+        ## ---------------------------- w_c_idx ----------------------------
+        TARGET = "w_c_idx"
+        BITWIDTH = "W_C_BITWIDTH"
+        LEN = "C"
+        bitwidth = 5  
+
+        f.write(f"// {TARGET}\n")
+        for layer in range(1,3):
+            for s in range(3):
+                W = Wbundles[1][s]
+                data = np.array(W.get_c_idx())      
+                data = [np.binary_repr(i,bitwidth) for i in data]
+                # data = [ b[0:5]+"_"+b[5:16]for b in data]
+                f.write(f"    localparam logic [`{BITWIDTH}-1:0] {TARGET}_l{layer}_s{s} [0:`W_{LEN}_LENGTH_L{layer}_S{s}-1] =\n")
+                f.write("    '{\n")
+                for b in data[:-1]:
+                    f.write(f"        `{BITWIDTH}'b{b},\n")
+                f.write(f"        `{BITWIDTH}'b{b}\n")
+                f.write("    };\n")
+        f.write("\n")   
+
+        ## ---------------------------- w_r_idx ----------------------------
+        TARGET = "w_r_idx"
+        BITWIDTH = "W_R_BITWIDTH"
+        LEN = "R"
+        bitwidth = 2
+
+        f.write(f"// {TARGET}\n")
+        for layer in range(1,3):
+            for s in range(3):
+                W = Wbundles[1][s]
+                data = np.array(W.get_r_idx())      
+                data = [np.binary_repr(i,bitwidth) for i in data]
+                # data = [ b[0:5]+"_"+b[5:16]for b in data]
+                f.write(f"    localparam logic [`{BITWIDTH}-1:0] {TARGET}_l{layer}_s{s} [0:`W_{LEN}_LENGTH_L{layer}_S{s}-1] =\n")
+                f.write("    '{\n")
+                for b in data[:-1]:
+                    f.write(f"        `{BITWIDTH}'b{b},\n")
+                f.write(f"        `{BITWIDTH}'b{b}\n")
+                f.write("    };\n")
+        f.write("\n") 
+
+        ## ---------------------------- w_k_idx ----------------------------
+        TARGET = "w_k_idx"
+        BITWIDTH = "W_K_BITWIDTH"
+        LEN = "R"
+        bitwidth = 5
+
+        f.write(f"// {TARGET}\n")
+        for layer in range(1,3):
+            for s in range(3):
+                W = Wbundles[1][s]
+                data = np.array(W.get_k_idx())      
+                data = [np.binary_repr(i,bitwidth) for i in data]
+                # data = [ b[0:5]+"_"+b[5:16]for b in data]
+                f.write(f"    localparam logic [`{BITWIDTH}-1:0] {TARGET}_l{layer}_s{s} [0:`W_{LEN}_LENGTH_L{layer}_S{s}-1] =\n")
+                f.write("    '{\n")
+                for b in data[:-1]:
+                    f.write(f"        `{BITWIDTH}'b{b},\n")
+                f.write(f"        `{BITWIDTH}'b{b}\n")
+                f.write("    };\n")
+        f.write("\n")    
+
+        ## ---------------------------- w_pos_ptr ----------------------------  
+        TARGET = "w_pos_ptr"
+        BITWIDTH = "W_POS_PTR_BITWIDTH"
+        LEN = "R"
+        bitwidth = 11
+
+        f.write(f"// {TARGET}\n")
+        for layer in range(1,3):
+            for s in range(3):
+                W = Wbundles[1][s]
+                data = np.array(W.get_pos_ptr())      
+                data = [np.binary_repr(i,bitwidth) for i in data]
+                # data = [ b[0:5]+"_"+b[5:16]for b in data]
+                f.write(f"    localparam logic [`{BITWIDTH}-1:0] {TARGET}_l{layer}_s{s} [0:`W_{LEN}_LENGTH_L{layer}_S{s}-1] =\n")
+                f.write("    '{\n")
+                for b in data[:-1]:
+                    f.write(f"        `{BITWIDTH}'b{b},\n")
+                f.write(f"        `{BITWIDTH}'b{b}\n")
+                f.write("    };\n")
+        f.write("\n")      
+        f.write(f"// w_all\n")  
+    
 
 
 
@@ -157,6 +383,11 @@ def write_w_pos_ptr():
 # write_w_r_idx()
 # write_w_k_idx()
 # write_w_pos_ptr()
+
+write_w_all()
+write_w_all_all_layer1()
+
+
 
 
 #  '{
