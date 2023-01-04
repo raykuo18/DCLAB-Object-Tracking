@@ -31,6 +31,12 @@ ncverilog +access+rw Top_PE_TEMP_tb.sv Top.sv PE_TEMP.sv
 
 
 
+
+ncverilog +access+rw Top_tb.sv Top.sv Addr_RF.sv
+
+
+
+
 ncverilog +access+rw Top_addrRF.sv Addr_RF.sv
 
 
